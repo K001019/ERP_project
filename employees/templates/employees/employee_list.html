@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}قائمة الموظفين{% endblock %}
+
+{% block page_title %}إدارة الموظفين{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>قائمة الموظفين</span>
+        <a href="{% url 'employee_add' %}" class="btn btn-success">إضافة موظف جديد</a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>الاسم</th>
+                        <th>رقم الموظف</th>
+                        <th>البريد الإلكتروني</th>
+                        <th>رقم الهاتف</th>
+                        <th>تاريخ التعيين</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for employee in employees %}
+                    <tr>
+                        <td>{{ employee.first_name }} {{ employee.last_name }}</td>
+                        <td>{{ employee.employee_id }}</td>
+                        <td>{{ employee.email }}</td>
+                        <td>{{ employee.phone_number }}</td>
+                        <td>{{ employee.hire_date }}</td>
+                        <td>
+                            <a href="{% url 'employee_edit' pk=employee.pk %}" class="btn btn-sm btn-primary">تعديل</a>
+                            <!-- سنفعل زر الحذف في الخطوة التالية -->
+                            <a href="#" class="btn btn-sm btn-danger">حذف</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">لا يوجد موظفين لعرضهم.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}```

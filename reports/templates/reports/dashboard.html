@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}لوحة المعلومات - نظام ERP{% endblock %}
+
+{% block page_title %}لوحة المعلومات{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- بطاقة عدد الموظفين -->
+    <div class="col-md-4">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-header">الموظفين</div>
+            <div class="card-body">
+                <h5 class="card-title">إجمالي الموظفين</h5>
+                <p class="card-text fs-2">{{ employee_count }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- بطاقة عدد المنتجات -->
+    <div class="col-md-4">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-header">المنتجات</div>
+            <div class="card-body">
+                <h5 class="card-title">إجمالي المنتجات</h5>
+                <p class="card-text fs-2">{{ product_count }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- بطاقة عدد الطلبات -->
+    <div class="col-md-4">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-header">أوامر المبيعات</div>
+            <div class="card-body">
+                <h5 class="card-title">إجمالي الطلبات</h5>
+                <p class="card-text fs-2">{{ sales_order_count }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- يمكن إضافة رسوم بيانية أو جداول هنا لاحقاً -->
+{% endblock %}

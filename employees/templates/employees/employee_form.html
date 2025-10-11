@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %} <!-- سنحتاج لتثبيت مكتبة إضافية لهذا -->
+
+{% block title %}{% if form.instance.pk %}تعديل موظف{% else %}إضافة موظف جديد{% endif %}{% endblock %}
+
+{% block page_title %}
+    {% if form.instance.pk %}
+        تعديل بيانات الموظف: {{ employee.first_name }} {{ employee.last_name }}
+    {% else %}
+        إضافة موظف جديد
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            
+            <!-- استخدام المكتبة لعرض النموذج بشكل جميل -->
+            {{ form|crispy }}
+            
+            <hr>
+            <button type="submit" class="btn btn-success">
+                {% if form.instance.pk %}حفظ التغييرات{% else %}إضافة موظف{% endif %}
+            </button>
+            <a href="{% url 'employee_list' %}" class="btn btn-secondary">إلغاء</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

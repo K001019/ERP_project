@@ -41,3 +41,17 @@ def employee_update_view(request, pk):
         'employee': employee, # نمرر الموظف للقالب لنتمكن من عرض اسمه في العنوان
     }
     return render(request, 'employees/employee_form.html', context)
+
+@login_required
+def employee_delete_view(request, pk):
+    employee = get_object_or_404(Employee, pk=pk)
+    
+    if request.method == 'POST':
+        employee.delete()
+        # يمكنك إضافة رسالة نجاح هنا
+        return redirect('employee_list')
+        
+    context = {
+        'employee': employee
+    }
+    return render(request, 'employees/employee_confirm_delete.html', context)

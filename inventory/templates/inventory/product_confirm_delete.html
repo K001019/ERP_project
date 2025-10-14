@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}تأكيد حذف منتج{% endblock %}
+
+{% block page_title %}تأكيد الحذف{% endblock %}
+
+{% block content %}
+<div class="card border-danger">
+    <div class="card-header bg-danger text-white">
+        تحذير
+    </div>
+    <div class="card-body">
+        <h5 class="card-title">هل أنت متأكد أنك تريد حذف المنتج: "{{ product.name }}"؟</h5>
+        <p class="card-text">سيتم حذف هذا المنتج بشكل نهائي من قاعدة البيانات.</p>
+        
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">نعم، قم بالحذف</button>
+            <a href="{% url 'product_list' %}" class="btn btn-secondary">إلغاء</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

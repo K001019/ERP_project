@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if form.instance.pk %}تعديل عميل{% else %}إضافة عميل جديد{% endif %}{% endblock %}
+
+{% block page_title %}
+    {% if form.instance.pk %}
+        تعديل عميل: {{ customer.name }}
+    {% else %}
+        إضافة عميل جديد
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <hr>
+            <button type="submit" class="btn btn-success">
+                {% if form.instance.pk %}حفظ التغييرات{% else %}إضافة عميل{% endif %}
+            </button>
+            <a href="{% url 'customer_list' %}" class="btn btn-secondary">إلغاء</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

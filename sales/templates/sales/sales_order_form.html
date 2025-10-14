@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}إنشاء أمر مبيع جديد{% endblock %}
+
+{% block page_title %}إنشاء أمر مبيع جديد{% endblock %}
+
+{% block content %}
+<form method="post" id="order-form">
+    {% csrf_token %}
+    <div class="card">
+        <div class="card-header">
+            معلومات الطلب الأساسية
+        </div>
+        <div class="card-body">
+            <!-- عرض أخطاء النموذج الرئيسية (مثل خطأ المخزون) -->
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <div class="row">
+                <div class="col-md-6">{{ form.customer|as_crispy_field }}</div>
+                <div class="col-md-6">{{ form.status|as_crispy_field }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            بنود الطلب
+        </div>
+        <div class="card-body">
+            {{ formset.management_form }}
+            <div id="item-forms-container">
+                {% for item_form in formset %}
+                <div class="row item-form mb-3 border-bottom pb-3">
+                    <div class="col-md-5">{{ item_form.product|as_crispy_field }}</div>
+                    <div class="col-md-5">{{ item_form.quantity|as_crispy_field }}</div>
+                    <div class="col-md-2 align-self-center">
+                        {% if item_form.instance.pk %}
+                            {{ item_form.DELETE|as_crispy_field }}
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- هذا هو القالب الذي سنستخدمه لإضافة صفوف جديدة بالجافاسكريبت -->
+            <div id="empty-form-template" class="d-none">
+                <div class="row item-form mb-3 border-bottom pb-3">
+                    <div class="col-md-5">{{ formset.empty_form.product|as_crispy_field }}</div>
+                    <div class="col-md-5">{{ formset.empty_form.quantity|as_crispy_field }}</div>
+                    <div class="col-md-2 align-self-center">
+                        <button type="button" class="btn btn-danger remove-form-btn">إزالة</button>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="button" id="add-form-btn" class="btn btn-secondary mt-2">إضافة منتج آخر</button>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-success">إنشاء أمر المبيع</button>
+        <a href="{% url 'sales_order_list' %}" class="btn btn-secondary">إلغاء</a>
+    </div>
+</form>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addFormBtn = document.getElementById('add-form-btn');
+    const formContainer = document.getElementById('item-forms-container');
+    const emptyFormTemplate = document.getElementById('empty-form-template').innerHTML;
+    const totalFormsInput = document.querySelector('#id_items-TOTAL_FORMS');
+    const formsetPrefix = 'items'; // هذا هو related_name الذي حددناه في النموذج
+
+    addFormBtn.addEventListener('click', function() {
+        // 1. احصل على عدد النماذج الحالي
+        let currentFormCount = parseInt(totalFormsInput.value);
+
+        // 2. أنشئ نسخة جديدة من قالب النموذج الفارغ
+        // واستبدل "__prefix__" بالرقم الصحيح
+        let newFormHtml = emptyFormTemplate.replace(/__prefix__/g, currentFormCount);
+
+        // 3. أضف النموذج الجديد إلى الحاوية
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = newFormHtml;
+        const newForm = tempDiv.firstElementChild;
+        formContainer.appendChild(newForm);
+
+        // 4. قم بزيادة قيمة حقل TOTAL_FORMS
+        totalFormsInput.value = currentFormCount + 1;
+    });
+
+    // إضافة مستمع حدث لإزالة النماذج (باستخدام تفويض الحدث)
+    formContainer.addEventListener('click', function(event) {
+        if (event.target && event.target.classList.contains('remove-form-btn')) {
+            // جد الصف الأب وقم بإزالته
+            event.target.closest('.item-form').remove();
+            
+            // عند إزالة نموذج تمت إضافته ديناميكيًا، من الأفضل تحديث
+            // TOTAL_FORMS ليعكس العدد الصحيح. لكن Django ذكي بما يكفي
+            // لتجاهل النماذج المفقودة، لذا هذه الخطوة اختيارية لتبسيط الأمور.
+            // لنقم بتحديثه للحفاظ على الدقة
+            // let currentFormCount = parseInt(totalFormsInput.value);
+            // totalFormsInput.value = currentFormCount - 1; 
+            // ملاحظة: تحديث الـ count يمكن أن يسبب مشاكل في حال حذف صف من المنتصف.
+            // الطريقة الأكثر أمانًا هي ببساطة إزالته من الـ DOM. Django سيتعامل مع الباقي.
+        }
+    });
+});
+</script>
+{% endblock %}

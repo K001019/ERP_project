@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}تأكيد حذف موظف{% endblock %}
+
+{% block page_title %}تأكيد الحذف{% endblock %}
+
+{% block content %}
+<div class="card border-danger">
+    <div class="card-header bg-danger text-white">
+        تحذير
+    </div>
+    <div class="card-body">
+        <h5 class="card-title">هل أنت متأكد أنك تريد حذف الموظف: "{{ employee.first_name }} {{ employee.last_name }}"؟
+        </h5>
+        <p class="card-text">لا يمكن التراجع عن هذا الإجراء. سيتم حذف بيانات هذا الموظف بشكل نهائي.</p>
+
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">نعم، قم بالحذف</button>
+            <a href="{% url 'employee_list' %}" class="btn btn-secondary">إلغاء</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -24,4 +24,10 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
     # إضافة مسارات تطبيق الموظفين
     path('employees/', include('employees.urls')),
+    # إضافة مسارات تطبيق المخازن
+    path('products/', include('inventory.urls')), 
+     # إضافة مسارات تطبيق المبيعات للعملاء
+    path('customers/', include('sales.urls')),
+    path('sales/', include('sales.urls')),
+
 ]

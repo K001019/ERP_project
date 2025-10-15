@@ -32,8 +32,9 @@
                         <td><span class="badge bg-info">{{ order.get_status_display }}</span></td>
                         <td>{{ order.total_amount }}</td>
                         <td>
-                            <a href="{% url 'sales_order_detail' pk=order.pk %}" class="btn btn-sm btn-primary">عرض
+                            <a href="{% url 'sales_order_detail' pk=order.pk %}" class="btn btn-sm btn-info">عرض
                                 التفاصيل</a>
+                            <a href="{% url 'sales_order_edit' pk=order.pk %}" class="btn btn-sm btn-primary">تعديل</a>
                         </td>
                     </tr>
                     {% empty %}

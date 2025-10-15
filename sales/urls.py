@@ -20,8 +20,9 @@ customer_patterns = [
 # مسارات أوامر المبيعات
 order_patterns = [
     path('', views.sales_order_list_view, name='sales_order_list'),
-     path('add/', views.sales_order_create_view, name='sales_order_add'),
+    path('add/', views.sales_order_create_view, name='sales_order_add'),
     path('<int:pk>/', views.sales_order_detail_view, name='sales_order_detail'),
+    path('<int:pk>/edit/', views.sales_order_update_view, name='sales_order_edit'),
 ]
 
 urlpatterns = [

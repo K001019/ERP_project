@@ -42,5 +42,7 @@ OrderItemFormSet = inlineformset_factory(
     form=OrderItemForm, # النموذج الذي سيُستخدم لكل بند
     extra=1,            # عدد النماذج الفارغة التي ستظهر بشكل افتراضي
     can_delete=True,    # السماح بحذف البنود من الواجهة
-    can_delete_extra=True
+    can_delete_extra=True,
+    #min_num=1, # يتطلب وجود بند واحد على الأقل
+    #validate_min=True,
 )

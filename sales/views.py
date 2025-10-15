@@ -8,7 +8,7 @@ from .models import Customer, SalesOrder, OrderItem
 from .forms import CustomerForm, SalesOrderForm, OrderItemFormSet # استيراد النماذج الجديدة
 from django.db import transaction # مهم جداً للمعاملات الآمنة
 from django.contrib import messages # لاستيراد نظام الرسائل
-
+from inventory.models import Product # <--- أضف هذا السطر لاستيراد نموذج المنتج
 
 @login_required
 def customer_list_view(request):
@@ -117,4 +117,88 @@ def sales_order_create_view(request):
         'form': form,
         'formset': formset,
     }
+    return render(request, 'sales/sales_order_form.html', context)
+
+@login_required
+def sales_order_update_view(request, pk):
+    order = get_object_or_404(SalesOrder, pk=pk)
+    form = SalesOrderForm(request.POST or None, instance=order)
+    formset = OrderItemFormSet(request.POST or None, instance=order)
+
+    if request.method == "POST":
+        if form.is_valid() and formset.is_valid():
+            try:
+                with transaction.atomic():
+                    form.save()
+
+                    # حلقة لمعالجة كل نموذج في الـ formset
+                    for form_item in formset:
+                        # إذا لم يكن النموذج صالحًا أو لا يحتوي على بيانات، تجاهله
+                        if not form_item.is_valid() or not form_item.has_changed():
+                            continue
+
+                        # استخراج البيانات
+                        instance = form_item.instance
+                        new_quantity = form_item.cleaned_data.get('quantity', 0)
+                        is_deleted = form_item.cleaned_data.get('DELETE', False)
+                        
+                        # الحالة 1: حذف بند موجود
+                        if instance.pk and is_deleted:
+                            instance.product.quantity_in_stock += instance.quantity
+                            instance.product.save()
+                            instance.delete()
+                            continue
+
+                        # الحالة 2: تعديل بند موجود
+                        if instance.pk and not is_deleted:
+                            original_quantity = instance.quantity
+                            quantity_diff = original_quantity - new_quantity
+                            
+                            product_to_update = instance.product # استخدام المنتج المرتبط مباشرة
+                            
+                            if quantity_diff < 0 and abs(quantity_diff) > product_to_update.quantity_in_stock:
+                                messages.error(request, f"Not enough stock for '{product_to_update.name}'.")
+                                raise Exception("Insufficient stock")
+                            
+                            product_to_update.quantity_in_stock += quantity_diff
+                            product_to_update.save()
+                            
+                            # حفظ النموذج الفردي لتطبيق التغييرات (مثل الكمية الجديدة)
+                            form_item.save()
+
+                        # الحالة 3: إضافة بند جديد
+                        elif not instance.pk and not is_deleted:
+                            product = form_item.cleaned_data.get('product')
+                            if product and new_quantity > 0:
+                                if product.quantity_in_stock < new_quantity:
+                                    messages.error(request, f"Not enough stock for new item '{product.name}'.")
+                                    raise Exception("Insufficient stock")
+                                
+                                product.quantity_in_stock -= new_quantity
+                                product.save()
+                                
+                                new_item = form_item.save(commit=False)
+                                new_item.order = order
+                                new_item.unit_price = product.sale_price
+                                new_item.save()
+                    
+                    # إعادة حساب الإجمالي في النهاية
+                    order.refresh_from_db()
+                    total_amount = sum(item.quantity * item.unit_price for item in order.items.all() if item.unit_price)
+                    order.total_amount = total_amount
+                    order.save()
+
+                messages.success(request, f"تم تحديث أمر المبيع رقم #{order.id} بنجاح.")
+                return redirect('sales_order_list')
+
+            except Exception as e:
+                print(f"An error occurred during update: {e}")
+                if not any(message.level == messages.ERROR for message in messages.get_messages(request)):
+                    messages.error(request, "An error occurred during the update.")
+        else:
+            messages.error(request, "Invalid data submitted.")
+            print("Form errors:", form.errors)
+            print("Formset errors:", formset.errors)
+
+    context = {'form': form, 'formset': formset, 'order': order}
     return render(request, 'sales/sales_order_form.html', context)

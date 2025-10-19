@@ -77,30 +77,38 @@
                 لوحة المعلومات
               </a>
             </li>
+            {% if perms.employees.view_employee %}
             <li class="nav-item">
               <a class="nav-link {% if request.resolver_match.url_name == 'employee_list' %}active{% endif %}" href="{% url 'employee_list' %}">
                 <i class="bi bi-people-fill me-2"></i>
                 الموظفين
               </a>
             </li>
+            {% endif %}
+            {% if perms.inventory.view_product %}
             <li class="nav-item">
               <a class="nav-link {% if request.resolver_match.url_name == 'product_list' %}active{% endif %}" href="{% url 'product_list' %}">
                 <i class="bi bi-box-seam-fill me-2"></i>
                 المنتجات
               </a>
             </li>
+            {% endif %}
+            {% if perms.sales.view_salesorder %}
             <li class="nav-item">
               <a class="nav-link {% if request.resolver_match.url_name == 'sales_order_list' %}active{% endif %}" href="{% url 'sales_order_list' %}">
                 <i class="bi bi-cart-check-fill me-2"></i>
                 أوامر المبيعات
               </a>
             </li>
+            {% endif %}
+            {% if perms.sales.view_customer %}
             <li class="nav-item">
               <a class="nav-link {% if request.resolver_match.url_name == 'customer_list' %}active{% endif %}" href="{% url 'customer_list' %}">
                 <i class="bi bi-person-vcard-fill me-2"></i>
                 العملاء
               </a>
             </li>
+            {% endif %}
           </ul>
         </div>
       </nav>

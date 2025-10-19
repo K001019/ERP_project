@@ -8,7 +8,11 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <span>قائمة أوامر المبيعات</span>
-        <a href="{% url 'sales_order_add' %}" class="btn btn-success">إنشاء أمر مبيع جديد</a>
+        
+        {# --- التحكم في زر الإنشاء --- #}
+        {% if perms.sales.add_salesorder %}
+            <a href="{% url 'sales_order_add' %}" class="btn btn-success">إنشاء أمر مبيع جديد</a>
+        {% endif %}
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -20,7 +24,11 @@
                         <th>تاريخ الطلب</th>
                         <th>الحالة</th>
                         <th>المبلغ الإجمالي</th>
-                        <th>الإجراءات</th>
+                        
+                        {# --- إخفاء عمود "الإجراءات" بالكامل إذا لم يكن لدى المستخدم أي صلاحية للعرض أو التعديل --- #}
+                        {% if perms.sales.view_salesorder or perms.sales.change_salesorder %}
+                            <th>الإجراءات</th>
+                        {% endif %}
                     </tr>
                 </thead>
                 <tbody>
@@ -31,11 +39,27 @@
                         <td>{{ order.order_date|date:"Y-m-d H:i" }}</td>
                         <td><span class="badge bg-info">{{ order.get_status_display }}</span></td>
                         <td>{{ order.total_amount }}</td>
+                        
+                        {# --- التحكم في أزرار الإجراءات لكل صف --- #}
+                        {% if perms.sales.view_salesorder or perms.sales.change_salesorder %}
                         <td>
-                            <a href="{% url 'sales_order_detail' pk=order.pk %}" class="btn btn-sm btn-info">عرض
-                                التفاصيل</a>
-                            <a href="{% url 'sales_order_edit' pk=order.pk %}" class="btn btn-sm btn-primary">تعديل</a>
+                            {# صلاحية عرض التفاصيل هي نفس صلاحية عرض القائمة #}
+                            {% if perms.sales.view_salesorder %}
+                                <a href="{% url 'sales_order_detail' pk=order.pk %}" class="btn btn-sm btn-info">عرض
+                                    التفاصيل</a>
+                            {% endif %}
+                            
+                            {% if perms.sales.change_salesorder %}
+                                <a href="{% url 'sales_order_edit' pk=order.pk %}" class="btn btn-sm btn-primary">تعديل</a>
+                            {% endif %}
+                            <!--
+                            {# ملاحظة: لم نقم ببناء وظيفة الحذف لأوامر المبيعات، ولكن إذا قمت ببنائها، أضفها هنا #}
+                            {# {% if perms.sales.delete_salesorder %}
+                                <a href="#" class="btn btn-sm btn-danger">حذف</a>
+                            {% endif %} #}
+                            -->
                         </td>
+                        {% endif %}
                     </tr>
                     {% empty %}
                     <tr>

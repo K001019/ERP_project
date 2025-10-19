@@ -8,7 +8,9 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <span>قائمة الموظفين</span>
+        {% if perms.employees.add_employee %}
         <a href="{% url 'employee_add' %}" class="btn btn-success">إضافة موظف جديد</a>
+        {% endif %}
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -32,8 +34,12 @@
                         <td>{{ employee.phone_number }}</td>
                         <td>{{ employee.hire_date }}</td>
                         <td>
+                            {% if perms.employees.change_employee %}
                             <a href="{% url 'employee_edit' pk=employee.pk %}" class="btn btn-sm btn-primary">تعديل</a>
+                            {% endif %}
+                            {% if perms.employees.delete_employee %}
                             <a href="{% url 'employee_delete' pk=employee.pk %}" class="btn btn-sm btn-danger">حذف</a>
+                            {% endif %}
                         </td>
                     </tr>
                     {% empty %}

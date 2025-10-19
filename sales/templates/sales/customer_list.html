@@ -8,7 +8,11 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <span>قائمة العملاء</span>
-        <a href="{% url 'customer_add' %}" class="btn btn-success">إضافة عميل جديد</a>
+        
+        {# --- التحكم في زر الإضافة --- #}
+        {% if perms.sales.add_customer %}
+            <a href="{% url 'customer_add' %}" class="btn btn-success">إضافة عميل جديد</a>
+        {% endif %}
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -18,7 +22,11 @@
                         <th>الاسم</th>
                         <th>البريد الإلكتروني</th>
                         <th>رقم الهاتف</th>
-                        <th>الإجراءات</th>
+                        
+                        {# --- إخفاء عمود "الإجراءات" بالكامل إذا لم يكن لدى المستخدم أي صلاحية للتعديل أو الحذف --- #}
+                        {% if perms.sales.change_customer or perms.sales.delete_customer %}
+                            <th>الإجراءات</th>
+                        {% endif %}
                     </tr>
                 </thead>
                 <tbody>
@@ -27,10 +35,19 @@
                         <td>{{ customer.name }}</td>
                         <td>{{ customer.email|default:"--" }}</td>
                         <td>{{ customer.phone_number|default:"--" }}</td>
+                        
+                        {# --- التحكم في أزرار الإجراءات لكل صف --- #}
+                        {% if perms.sales.change_customer or perms.sales.delete_customer %}
                         <td>
-                            <a href="{% url 'customer_edit' pk=customer.pk %}" class="btn btn-sm btn-primary">تعديل</a>
-                            <a href="{% url 'customer_delete' pk=customer.pk %}" class="btn btn-sm btn-danger">حذف</a>
+                            {% if perms.sales.change_customer %}
+                                <a href="{% url 'customer_edit' pk=customer.pk %}" class="btn btn-sm btn-primary">تعديل</a>
+                            {% endif %}
+                            
+                            {% if perms.sales.delete_customer %}
+                                <a href="{% url 'customer_delete' pk=customer.pk %}" class="btn btn-sm btn-danger">حذف</a>
+                            {% endif %}
                         </td>
+                        {% endif %}
                     </tr>
                     {% empty %}
                     <tr>

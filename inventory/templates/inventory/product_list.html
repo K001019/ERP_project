@@ -8,10 +8,11 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <span>قائمة المنتجات</span>
-        
+
         {# --- التحكم في زر الإضافة --- #}
         {% if perms.inventory.add_product %}
-            <a href="{% url 'product_add' %}" class="btn btn-success">إضافة منتج جديد</a>
+        <a href="{% url 'product_prediction' %}" class="btn btn-info">تقرير التنبؤ</a>
+        <a href="{% url 'product_add' %}" class="btn btn-success">إضافة منتج جديد</a>
         {% endif %}
     </div>
     <div class="card-body">
@@ -24,10 +25,10 @@
                         <th>الكمية في المخزون</th>
                         <th>سعر البيع</th>
                         <th>المورد</th>
-                        
+
                         {# --- إخفاء عمود "الإجراءات" بالكامل إذا لم يكن لدى المستخدم أي صلاحية للتعديل أو الحذف --- #}
                         {% if perms.inventory.change_product or perms.inventory.delete_product %}
-                            <th>الإجراءات</th>
+                        <th>الإجراءات</th>
                         {% endif %}
                     </tr>
                 </thead>
@@ -39,16 +40,16 @@
                         <td>{{ product.quantity_in_stock }} {{ product.unit_of_measure }}</td>
                         <td>{{ product.sale_price }}</td>
                         <td>{{ product.supplier.name|default:"--" }}</td>
-                        
+
                         {# --- التحكم في أزرار الإجراءات لكل صف --- #}
                         {% if perms.inventory.change_product or perms.inventory.delete_product %}
                         <td>
                             {% if perms.inventory.change_product %}
-                                <a href="{% url 'product_edit' pk=product.pk %}" class="btn btn-sm btn-primary">تعديل</a>
+                            <a href="{% url 'product_edit' pk=product.pk %}" class="btn btn-sm btn-primary">تعديل</a>
                             {% endif %}
-                            
+
                             {% if perms.inventory.delete_product %}
-                                <a href="{% url 'product_delete' pk=product.pk %}" class="btn btn-sm btn-danger">حذف</a>
+                            <a href="{% url 'product_delete' pk=product.pk %}" class="btn btn-sm btn-danger">حذف</a>
                             {% endif %}
                         </td>
                         {% endif %}

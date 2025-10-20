@@ -29,5 +29,6 @@ urlpatterns = [
      # إضافة مسارات تطبيق المبيعات للعملاء
     path('customers/', include('sales.urls')),
     path('sales/', include('sales.urls')),
+    path('reports/', include('reports.urls')),
 
 ]

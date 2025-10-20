@@ -38,10 +38,10 @@
         aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
-      
+
       <!-- يمكن إضافة حقل بحث هنا مستقبلاً -->
       <div class="w-100"></div>
-      
+
       <div class="navbar-nav">
         <div class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -72,14 +72,16 @@
         <div class="position-sticky pt-3">
           <ul class="nav flex-column">
             <li class="nav-item">
-              <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
+              <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+                href="{% url 'dashboard' %}">
                 <i class="bi bi-grid-1x2-fill me-2"></i>
                 لوحة المعلومات
               </a>
             </li>
             {% if perms.employees.view_employee %}
             <li class="nav-item">
-              <a class="nav-link {% if request.resolver_match.url_name == 'employee_list' %}active{% endif %}" href="{% url 'employee_list' %}">
+              <a class="nav-link {% if request.resolver_match.url_name == 'employee_list' %}active{% endif %}"
+                href="{% url 'employee_list' %}">
                 <i class="bi bi-people-fill me-2"></i>
                 الموظفين
               </a>
@@ -87,7 +89,8 @@
             {% endif %}
             {% if perms.inventory.view_product %}
             <li class="nav-item">
-              <a class="nav-link {% if request.resolver_match.url_name == 'product_list' %}active{% endif %}" href="{% url 'product_list' %}">
+              <a class="nav-link {% if request.resolver_match.url_name == 'product_list' %}active{% endif %}"
+                href="{% url 'product_list' %}">
                 <i class="bi bi-box-seam-fill me-2"></i>
                 المنتجات
               </a>
@@ -95,7 +98,8 @@
             {% endif %}
             {% if perms.sales.view_salesorder %}
             <li class="nav-item">
-              <a class="nav-link {% if request.resolver_match.url_name == 'sales_order_list' %}active{% endif %}" href="{% url 'sales_order_list' %}">
+              <a class="nav-link {% if request.resolver_match.url_name == 'sales_order_list' %}active{% endif %}"
+                href="{% url 'sales_order_list' %}">
                 <i class="bi bi-cart-check-fill me-2"></i>
                 أوامر المبيعات
               </a>
@@ -103,10 +107,16 @@
             {% endif %}
             {% if perms.sales.view_customer %}
             <li class="nav-item">
-              <a class="nav-link {% if request.resolver_match.url_name == 'customer_list' %}active{% endif %}" href="{% url 'customer_list' %}">
+              <a class="nav-link {% if request.resolver_match.url_name == 'customer_list' %}active{% endif %}"
+                href="{% url 'customer_list' %}">
                 <i class="bi bi-person-vcard-fill me-2"></i>
                 العملاء
               </a>
+            </li>
+            {% endif %}
+            {% if perms.reports.view_report %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'main_report' %}">التقارير</a>
             </li>
             {% endif %}
           </ul>
@@ -119,14 +129,14 @@
       <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
         <div class="pt-3 pb-2 mb-3">
           {% if messages %}
-            {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-              {{ message }}
-              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-            {% endfor %}
+          {% for message in messages %}
+          <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          {% endfor %}
           {% endif %}
-          
+
           <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center">
             <h1 class="h2">{% block page_title %}{% endblock %}</h1>
           </div>
@@ -137,11 +147,11 @@
           <!-- محتوى الصفحة المحدد سيظهر هنا -->
           {% endblock %}
         </div>
-        
+
         <footer class="pt-4 my-md-5 pt-md-5 border-top">
-            <div class="text-center text-muted">
-                &copy; {% now "Y" %} نظام ERP - جميع الحقوق محفوظة.
-            </div>
+          <div class="text-center text-muted">
+            &copy; {% now "Y" %} نظام ERP - جميع الحقوق محفوظة.
+          </div>
         </footer>
       </main>
     </div>

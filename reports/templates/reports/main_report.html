@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}التقارير{% endblock %}
+
+{% block page_title %}تقارير الأداء الرئيسية{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- التقرير الأول: المنتجات الأكثر مبيعًا -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">المنتجات الأكثر مبيعًا (حسب الكمية)</div>
+            <div class="card-body">
+                <ul class="list-group">
+                    {% for product in top_selling_products %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ product.product__name }}
+                            <span class="badge bg-primary rounded-pill">{{ product.total_quantity_sold }}</span>
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item">لا توجد بيانات مبيعات لعرضها.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- التقرير الثاني: العملاء الأكثر شراءً -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">العملاء الأكثر شراءً (حسب القيمة)</div>
+            <div class="card-body">
+                <ul class="list-group">
+                    {% for customer in top_customers %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ customer.customer__name }}
+                            <span class="badge bg-success rounded-pill">{{ customer.total_spent|floatformat:2 }}</span>
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item">لا توجد بيانات طلبات لعرضها.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- التقرير الثالث: منتجات على وشك النفاذ -->
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header text-white bg-danger">تنبيه: منتجات على وشك النفاذ</div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>المنتج</th>
+                            <th>الكمية الحالية</th>
+                            <th>حد إعادة الطلب</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in low_stock_products %}
+                        <tr>
+                            <td>{{ product.name }}</td>
+                            <td>{{ product.quantity_in_stock }}</td>
+                            <td>{{ product.reorder_level }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center">لا توجد منتجات على وشك النفاذ حاليًا.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

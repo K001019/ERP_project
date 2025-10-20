@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}تقرير التنبؤ بالمخزون{% endblock %}
+
+{% block page_title %}تقرير التنبؤ بالمخزون{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        توقعات الاستهلاك للشهر القادم والكميات المقترح إعادة طلبها
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>المنتج</th>
+                        <th>المخزون الحالي</th>
+                        <th>الاستهلاك المتوقع (الشهر القادم)</th>
+                        <th>حد إعادة الطلب</th>
+                        <th>الكمية المقترح طلبها</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in results %}
+                    <tr>
+                        <td>{{ result.product_name }}</td>
+                        <td>{{ result.current_stock }}</td>
+                        <td>{{ result.predicted_consumption }}</td>
+                        <td>{{ result.reorder_level }}</td>
+                        <td class="fw-bold {% if result.suggested_reorder > 0 %}text-danger{% endif %}">
+                            {{ result.suggested_reorder }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="alert alert-info mt-3">
+            <strong>ملاحظة:</strong> يتم حساب التنبؤ بناءً على بيانات الاستهلاك التاريخية (حركة المخزون الصادرة). دقة التنبؤ تزداد كلما زادت البيانات المتاحة.
+        </div>
+    </div>
+</div>
+{% endblock %}

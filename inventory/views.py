@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from .models import Product, StockMovement
 from .forms import ProductForm # استيراد النموذج الجديد
 from django.contrib.auth.decorators import login_required, permission_required
-# ... (دالة predict_inventory_needs تبقى كما هي)
+from django.db.models import Q # استيراد Q object للبحث المعقد
 import pandas as pd
 from statsmodels.tsa.api import ExponentialSmoothing
 from django.db.models.functions import TruncMonth
@@ -18,8 +18,22 @@ from django.db.models import Sum
 @login_required
 @permission_required('inventory.view_product', raise_exception=True)
 def product_list_view(request):
+    # الحصول على قيمة البحث من الرابط، إذا كانت موجودة
+    search_query = request.GET.get('q', None)
     products = Product.objects.all().order_by('name')
-    return render(request, 'inventory/product_list.html', {'products': products})
+    if search_query:
+        # استخدام Q objects للبحث في عدة حقول في نفس الوقت
+        # __icontains تعني "يحتوي على" وهي غير حساسة لحالة الأحرف
+        products = products.filter(
+            Q(name__icontains=search_query) |
+            Q(sku__icontains=search_query) |
+            Q(supplier__name__icontains=search_query)
+        )
+    context = {
+        'products': products,
+        'search_query': search_query, # نمرر قيمة البحث للقالب لنتمكن من عرضها في مربع البحث
+    }
+    return render(request, 'inventory/product_list.html', context)
 
 @login_required
 @permission_required('inventory.add_product', raise_exception=True)

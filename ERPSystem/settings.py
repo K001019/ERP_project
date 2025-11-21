@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'inventory.apps.InventoryConfig',
     'sales.apps.SalesConfig',
     'reports.apps.ReportsConfig',
+    'accounting.apps.AccountingConfig',
     #
     'crispy_forms',
     'crispy_bootstrap5',

@@ -10,6 +10,10 @@ from django.db import transaction # مهم جداً للمعاملات الآم�
 from django.contrib import messages # لاستيراد نظام الرسائل
 from inventory.models import Product # <--- أضف هذا السطر لاستيراد نموذج المنتج
 from django.contrib.auth.decorators import login_required, permission_required
+from django.http import JsonResponse
+from django.template.loader import render_to_string
+from weasyprint import HTML
+from django.http import HttpResponse
 
 @login_required
 @permission_required('sales.view_customer', raise_exception=True)
@@ -218,3 +222,37 @@ def sales_order_update_view(request, pk):
 
     context = {'form': form, 'formset': formset, 'order': order}
     return render(request, 'sales/sales_order_form.html', context)
+
+@login_required
+def get_product_price(request, pk):
+    """
+    دالة API بسيطة لجلب سعر البيع لمنتج معين.
+    """
+    try:
+        product = Product.objects.get(pk=pk)
+        data = {
+            'price': product.sale_price
+        }
+        return JsonResponse(data)
+    except Product.DoesNotExist:
+        return JsonResponse({'error': 'Product not found'}, status=404)
+    
+@login_required
+@permission_required('sales.view_salesorder', raise_exception=True)
+def sales_order_invoice_pdf(request, pk):
+    """
+    دالة لإنشاء وتنزيل فاتورة PDF لأمر مبيع معين.
+    """
+    order = get_object_or_404(SalesOrder.objects.prefetch_related('items', 'items__product'), pk=pk)
+    
+    # تحويل القالب إلى سلسلة نصية من HTML مع تمرير بيانات الطلب
+    html_string = render_to_string('sales/invoice_template.html', {'order': order})
+    
+    # إنشاء استجابة HTTP مع النوع المناسب لملف PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="invoice-{order.id}.pdf"'
+    
+    # استخدام WeasyPrint لكتابة ملف PDF مباشرة في الاستجابة
+    HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf(response)
+    
+    return response

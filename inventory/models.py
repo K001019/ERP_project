@@ -58,3 +58,35 @@ class StockMovement(models.Model):
     class Meta:
         verbose_name = "حركة مخزون"
         verbose_name_plural = "حركات المخزون"
+        
+class PurchaseOrder(models.Model):
+    STATUS_CHOICES = [
+        ('PENDING', 'قيد الانتظار'),
+        ('ORDERED', 'تم الطلب'),
+        ('RECEIVED', 'تم الاستلام'),
+    ]
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, verbose_name="المورد")
+    order_date = models.DateTimeField(default=timezone.now, verbose_name="تاريخ الطلب")
+    expected_delivery_date = models.DateField(null=True, blank=True, verbose_name="تاريخ التسليم المتوقع")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING', verbose_name="حالة الطلب")
+    
+    def __str__(self):
+        return f"أمر شراء #{self.id} من {self.supplier.name}"
+
+    class Meta:
+        verbose_name = "أمر شراء"
+        verbose_name_plural = "أوامر الشراء"
+
+
+class PurchaseOrderItem(models.Model):
+    purchase_order = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE, related_name='items', verbose_name="أمر الشراء")
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name="المنتج")
+    quantity = models.PositiveIntegerField(verbose_name="الكمية")
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="سعر الشراء للوحدة")
+    
+    def __str__(self):
+        return f"{self.quantity} x {self.product.name}"
+
+    class Meta:
+        verbose_name = "بند في أمر الشراء"
+        verbose_name_plural = "بنود أوامر الشراء"

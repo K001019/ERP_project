@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if order %}تعديل أمر شراء{% else %}إنشاء أمر شراء جديد{% endif %}{% endblock %}
+
+{% block page_title %}
+{% if order %}
+تعديل أمر شراء رقم #{{ order.id }}
+{% else %}
+إنشاء أمر شراء جديد
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<form method="post">
+    {% csrf_token %}
+    <div class="card">
+        <div class="card-header">
+            المعلومات الأساسية
+        </div>
+        <div class="card-body">
+            {{ form|crispy }}
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            بنود الطلب
+        </div>
+        <div class="card-body">
+            {{ formset.management_form }}
+            {% if formset.non_form_errors %}
+                <div class="alert alert-danger">{{ formset.non_form_errors }}</div>
+            {% endif %}
+
+            <div id="item-forms-container">
+                {% for item_form in formset %}
+                <div class="row item-form mb-3 border-bottom pb-3">
+                    {{ item_form.id }}
+                    <div class="col-md-5">{{ item_form.product|as_crispy_field }}</div>
+                    <div class="col-md-3">{{ item_form.quantity|as_crispy_field }}</div>
+                    <div class="col-md-3">{{ item_form.unit_price|as_crispy_field }}</div>
+                    <div class="col-md-1 align-self-center pt-3">
+                        {% if item_form.instance.pk %}
+                            {{ item_form.DELETE|as_crispy_field }}
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div id="empty-form-template" class="d-none">
+                <div class="row item-form mb-3 border-bottom pb-3">
+                    {{ formset.empty_form.id }}
+                    <div class="col-md-5">{{ formset.empty_form.product|as_crispy_field }}</div>
+                    <div class="col-md-3">{{ formset.empty_form.quantity|as_crispy_field }}</div>
+                    <div class="col-md-3">{{ formset.empty_form.unit_price|as_crispy_field }}</div>
+                    <div class="col-md-1 align-self-center pt-3">
+                         <button type="button" class="btn btn-sm btn-danger remove-form-btn w-100">إزالة</button>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" id="add-form-btn" class="btn btn-secondary mt-2">إضافة منتج آخر</button>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-success">{% if order %}حفظ التغييرات{% else %}إنشاء أمر الشراء{% endif %}</button>
+        <a href="{% url 'purchase_order_list' %}" class="btn btn-secondary">إلغاء</a>
+    </div>
+</form>
+{% endblock %}
+
+{% block javascript %}
+<script>
+// نفس كود الجافاسكريبت المستخدم في sales_order_form.html لإضافة وإزالة الصفوف
+document.addEventListener('DOMContentLoaded', function () {
+    const addFormBtn = document.getElementById('add-form-btn');
+    const formContainer = document.getElementById('item-forms-container');
+    const emptyFormTemplate = document.getElementById('empty-form-template').innerHTML;
+    const totalFormsInput = document.querySelector('#id_items-TOTAL_FORMS');
+
+    addFormBtn.addEventListener('click', function () {
+        let currentFormCount = parseInt(totalFormsInput.value);
+        let newFormHtml = emptyFormTemplate.replace(/__prefix__/g, currentFormCount);
+        
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = newFormHtml;
+        formContainer.appendChild(tempDiv.firstElementChild);
+
+        totalFormsInput.value = currentFormCount + 1;
+    });
+
+    formContainer.addEventListener('click', function (event) {
+        if (event.target && event.target.classList.contains('remove-form-btn')) {
+            event.target.closest('.item-form').remove();
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}تفاصيل أمر شراء #{{ order.id }}{% endblock %}
+
+{% block page_title %}تفاصيل أمر شراء #{{ order.id }}{% endblock %}
+
+{% block content %}
+
+<div class="card">
+    <div class="card-header">
+        معلومات أمر الشراء
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>المورد:</strong> {{ order.supplier.name }}</p>
+                <p><strong>تاريخ الطلب:</strong> {{ order.order_date|date:"Y-m-d" }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>الحالة:</strong> {{ order.get_status_display }}</p>
+                <p><strong>تاريخ التسليم المتوقع:</strong> {{ order.expected_delivery_date|default:"--" }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        بنود أمر الشراء
+    </div>
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>المنتج</th>
+                    <th>الكمية المطلوبة</th>
+                    <th>سعر الشراء للوحدة</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items.all %}
+                <tr>
+                    <td>{{ item.product.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.unit_price }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="{% url 'purchase_order_list' %}" class="btn btn-secondary">العودة إلى القائمة</a>
+    {% if order.status != 'RECEIVED' %}
+        <a href="{% url 'purchase_order_edit' pk=order.pk %}" class="btn btn-primary">تعديل</a>
+        <!-- زر استلام البضاعة -->
+        <a href="{% url 'purchase_order_receive' pk=order.pk %}" class="btn btn-success">
+            <i class="bi bi-box-arrow-in-down me-1"></i> استلام البضاعة وتحديث المخزون
+        </a>
+    {% endif %}
+</div>
+{% endblock %}

@@ -5,40 +5,134 @@
 {% block page_title %}لوحة المعلومات{% endblock %}
 
 {% block content %}
+
+<!-- صف الإحصائيات الأساسية -->
 <div class="row">
     <!-- بطاقة عدد الموظفين -->
-    <div class="col-md-4">
-        <div class="card text-white bg-primary mb-3">
-            <div class="card-header">الموظفين</div>
+    <div class="col-md-4 col-sm-6 mb-3">
+        <div class="card text-white bg-primary">
             <div class="card-body">
-                <h5 class="card-title">إجمالي الموظفين</h5>
-                <p class="card-text fs-2">{{ employee_count }}</p>
+                <h5 class="card-title"><i class="bi bi-people-fill me-2"></i>إجمالي الموظفين</h5>
+                <p class="card-text fs-2 fw-bold">{{ employee_count }}</p>
             </div>
         </div>
     </div>
 
     <!-- بطاقة عدد المنتجات -->
-    <div class="col-md-4">
-        <div class="card text-white bg-success mb-3">
-            <div class="card-header">المنتجات</div>
+    <div class="col-md-4 col-sm-6 mb-3">
+        <div class="card text-white bg-success">
             <div class="card-body">
-                <h5 class="card-title">إجمالي المنتجات</h5>
-                <p class="card-text fs-2">{{ product_count }}</p>
+                <h5 class="card-title"><i class="bi bi-box-seam-fill me-2"></i>إجمالي المنتجات</h5>
+                <p class="card-text fs-2 fw-bold">{{ product_count }}</p>
             </div>
         </div>
     </div>
 
     <!-- بطاقة عدد الطلبات -->
-    <div class="col-md-4">
-        <div class="card text-white bg-warning mb-3">
-            <div class="card-header">أوامر المبيعات</div>
+    <div class="col-md-4 col-sm-6 mb-3">
+        <div class="card text-white bg-warning">
             <div class="card-body">
-                <h5 class="card-title">إجمالي الطلبات</h5>
-                <p class="card-text fs-2">{{ sales_order_count }}</p>
+                <h5 class="card-title"><i class="bi bi-cart-check-fill me-2"></i>إجمالي الطلبات</h5>
+                <p class="card-text fs-2 fw-bold">{{ sales_order_count }}</p>
             </div>
         </div>
     </div>
 </div>
 
-<!-- يمكن إضافة رسوم بيانية أو جداول هنا لاحقاً -->
+<!-- صف الرسوم البيانية -->
+<div class="row mt-4">
+    <!-- الرسم البياني الأول: أفضل المنتجات مبيعًا -->
+    <div class="col-lg-7 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="bi bi-bar-chart-line-fill me-2"></i>أفضل 5 منتجات مبيعًا (حسب الكمية)
+            </div>
+            <div class="card-body">
+                <canvas id="topProductsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- الرسم البياني الثاني: المبيعات الشهرية -->
+    <div class="col-lg-5 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="bi bi-graph-up-arrow me-2"></i>إجمالي المبيعات (آخر 3 أشهر)
+            </div>
+            <div class="card-body">
+                <canvas id="monthlySalesChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block javascript %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // === الرسم البياني الأول: أفضل المنتجات ===
+    const topProductsCtx = document.getElementById('topProductsChart').getContext('2d');
+    const topProductsLabels = JSON.parse('{{ top_products_labels|safe }}');
+    const topProductsValues = JSON.parse('{{ top_products_values|safe }}');
+
+    new Chart(topProductsCtx, {
+        type: 'bar', // نوع الرسم: شريطي
+        data: {
+            labels: topProductsLabels,
+            datasets: [{
+                label: 'الكمية المباعة',
+                data: topProductsValues,
+                backgroundColor: 'rgba(54, 162, 235, 0.6)', // لون الأعمدة
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false // إخفاء العنوان العلوي للبيانات
+                }
+            }
+        }
+    });
+
+    // === الرسم البياني الثاني: المبيعات الشهرية ===
+    const monthlySalesCtx = document.getElementById('monthlySalesChart').getContext('2d');
+    const monthlySalesLabels = JSON.parse('{{ monthly_sales_labels|safe }}');
+    const monthlySalesValues = JSON.parse('{{ monthly_sales_values|safe }}');
+
+    new Chart(monthlySalesCtx, {
+        type: 'line', // نوع الرسم: خطي
+        data: {
+            labels: monthlySalesLabels,
+            datasets: [{
+                label: 'إجمالي المبيعات',
+                data: monthlySalesValues,
+                fill: true,
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+});
+</script>
 {% endblock %}

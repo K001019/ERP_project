@@ -23,9 +23,17 @@ order_patterns = [
     path('add/', views.sales_order_create_view, name='sales_order_add'),
     path('<int:pk>/', views.sales_order_detail_view, name='sales_order_detail'),
     path('<int:pk>/edit/', views.sales_order_update_view, name='sales_order_edit'),
+    path('<int:pk>/invoice/pdf/', views.sales_order_invoice_pdf, name='sales_order_invoice_pdf'),
+]
+
+# --- أنشئ قائمة جديدة لمسارات ה-API ---
+api_patterns = [
+    path('get-product-price/<int:pk>/', views.get_product_price, name='get_product_price'),
 ]
 
 urlpatterns = [
     path('customers/', include(customer_patterns)),
     path('orders/', include(order_patterns)),
+     # --- أضف هذا السطر لدمج مسارات ה-API ---
+    path('api/', include(api_patterns)),
 ]

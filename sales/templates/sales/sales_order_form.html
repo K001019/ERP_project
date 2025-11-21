@@ -11,6 +11,7 @@
 {% endif %}
 {% endblock %}
 {% block content %}
+
 <form method="post" id="order-form">
     {% csrf_token %}
     <div class="card">
@@ -46,13 +47,26 @@
                 {% endfor %}
             </div>
             {% endif %}
+            
+            <!-- عناوين الأعمدة -->
+            <div class="row fw-bold border-bottom pb-2 mb-2 d-none d-md-flex">
+                <div class="col-md-5">المنتج</div>
+                <div class="col-md-3">سعر الوحدة</div>
+                <div class="col-md-2">الكمية</div>
+                <div class="col-md-2">الإجراءات</div>
+            </div>
+
             <div id="item-forms-container">
                 {% for item_form in formset %}
-                <div class="row item-form mb-3 border-bottom pb-3">
+                <div class="row item-form mb-3 border-bottom pb-3 align-items-center">
                     {{ item_form.id }}
                     <div class="col-md-5">{{ item_form.product|as_crispy_field }}</div>
-                    <div class="col-md-5">{{ item_form.quantity|as_crispy_field }}</div>
-                    <div class="col-md-2 align-self-center pt-3"> {# أضفت pt-3 لتحسين التوسيط العمودي #}
+                    <div class="col-md-3">
+                        <label class="d-md-none">سعر الوحدة</label>
+                        <p class="form-control-static price-display fw-bold">--</p>
+                    </div>
+                    <div class="col-md-2">{{ item_form.quantity|as_crispy_field }}</div>
+                    <div class="col-md-2">
                         {% if item_form.instance.pk %}
                         {{ item_form.DELETE|as_crispy_field }}
                         {% endif %}
@@ -63,12 +77,16 @@
 
             <!-- هذا هو القالب الذي سنستخدمه لإضافة صفوف جديدة بالجافاسكريبت -->
             <div id="empty-form-template" class="d-none">
-                <div class="row item-form mb-3 border-bottom pb-3">
+                <div class="row item-form mb-3 border-bottom pb-3 align-items-center">
                     {{ formset.empty_form.id }}
                     <div class="col-md-5">{{ formset.empty_form.product|as_crispy_field }}</div>
-                    <div class="col-md-5">{{ formset.empty_form.quantity|as_crispy_field }}</div>
-                    <div class="col-md-2 align-self-center pt-3"> {# أضفت pt-3 لتحسين التوسيط العمودي #}
-                        <button type="button" class="btn btn-danger remove-form-btn">إزالة</button>
+                    <div class="col-md-3">
+                        <label class="d-md-none">سعر الوحدة</label>
+                        <p class="form-control-static price-display fw-bold">--</p>
+                    </div>
+                    <div class="col-md-2">{{ formset.empty_form.quantity|as_crispy_field }}</div>
+                    <div class="col-md-2">
+                         <button type="button" class="btn btn-danger remove-form-btn w-100">إزالة</button>
                     </div>
                 </div>
             </div>
@@ -84,49 +102,76 @@
     </div>
 </form>
 
+{% endblock %}
 
+{% block javascript %}
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const addFormBtn = document.getElementById('add-form-btn');
-        const formContainer = document.getElementById('item-forms-container');
-        const emptyFormTemplate = document.getElementById('empty-form-template').innerHTML;
-        const totalFormsInput = document.querySelector('#id_items-TOTAL_FORMS');
-        const formsetPrefix = 'items'; // هذا هو related_name الذي حددناه في النموذج
+document.addEventListener('DOMContentLoaded', function () {
+    const addFormBtn = document.getElementById('add-form-btn');
+    const formContainer = document.getElementById('item-forms-container');
+    const emptyFormTemplate = document.getElementById('empty-form-template').innerHTML;
+    const totalFormsInput = document.querySelector('#id_items-TOTAL_FORMS');
 
-        addFormBtn.addEventListener('click', function () {
-            // 1. احصل على عدد النماذج الحالي
-            let currentFormCount = parseInt(totalFormsInput.value);
+    addFormBtn.addEventListener('click', function () {
+        let currentFormCount = parseInt(totalFormsInput.value);
+        let newFormHtml = emptyFormTemplate.replace(/__prefix__/g, currentFormCount);
+        
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = newFormHtml;
+        const newForm = tempDiv.firstElementChild;
+        formContainer.appendChild(newForm);
 
-            // 2. أنشئ نسخة جديدة من قالب النموذج الفارغ
-            // واستبدل "__prefix__" بالرقم الصحيح
-            let newFormHtml = emptyFormTemplate.replace(/__prefix__/g, currentFormCount);
-
-            // 3. أضف النموذج الجديد إلى الحاوية
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = newFormHtml;
-            const newForm = tempDiv.firstElementChild;
-            formContainer.appendChild(newForm);
-
-            // 4. قم بزيادة قيمة حقل TOTAL_FORMS
-            totalFormsInput.value = currentFormCount + 1;
-        });
-
-        // إضافة مستمع حدث لإزالة النماذج (باستخدام تفويض الحدث)
-        formContainer.addEventListener('click', function (event) {
-            if (event.target && event.target.classList.contains('remove-form-btn')) {
-                // جد الصف الأب وقم بإزالته
-                event.target.closest('.item-form').remove();
-
-                // عند إزالة نموذج تمت إضافته ديناميكيًا، من الأفضل تحديث
-                // TOTAL_FORMS ليعكس العدد الصحيح. لكن Django ذكي بما يكفي
-                // لتجاهل النماذج المفقودة، لذا هذه الخطوة اختيارية لتبسيط الأمور.
-                // لنقم بتحديثه للحفاظ على الدقة
-                // let currentFormCount = parseInt(totalFormsInput.value);
-                // totalFormsInput.value = currentFormCount - 1; 
-                // ملاحظة: تحديث الـ count يمكن أن يسبب مشاكل في حال حذف صف من المنتصف.
-                // الطريقة الأكثر أمانًا هي ببساطة إزالته من الـ DOM. Django سيتعامل مع الباقي.
-            }
-        });
+        totalFormsInput.value = currentFormCount + 1;
     });
+
+    formContainer.addEventListener('click', function (event) {
+        if (event.target && event.target.classList.contains('remove-form-btn')) {
+            event.target.closest('.item-form').remove();
+        }
+    });
+
+    // --- الكود الجديد لجلب السعر ---
+    async function fetchProductPrice(productId, priceDisplayElement) {
+        if (!productId) {
+            priceDisplayElement.textContent = '--';
+            return;
+        }
+        try {
+            // انتبه: تأكد من أن الرابط صحيح ويتطابق مع ما في urls.py
+            const response = await fetch(`/sales/api/get-product-price/${productId}/`);
+            if (!response.ok) {
+                throw new Error('Network response error');
+            }
+            const data = await response.json();
+            if (data.price !== undefined) {
+                priceDisplayElement.textContent = data.price;
+            } else {
+                 priceDisplayElement.textContent = 'خطأ';
+            }
+        } catch (error) {
+            console.error('Error fetching price:', error);
+            priceDisplayElement.textContent = 'خطأ';
+        }
+    }
+
+    formContainer.addEventListener('change', function (event) {
+        // إذا كان العنصر الذي تغير هو حقل اختيار المنتج
+        if (event.target && event.target.classList.contains('product-select')) {
+            const productId = event.target.value;
+            const formRow = event.target.closest('.item-form');
+            const priceDisplay = formRow.querySelector('.price-display');
+            fetchProductPrice(productId, priceDisplay);
+        }
+    });
+
+    // --- تشغيل الكود لأول مرة عند تحميل الصفحة للحقول الموجودة مسبقًا ---
+    document.querySelectorAll('.product-select').forEach(selectElement => {
+        const productId = selectElement.value;
+        const formRow = selectElement.closest('.item-form');
+        const priceDisplay = formRow.querySelector('.price-display');
+        fetchProductPrice(productId, priceDisplay);
+    });
+
+});
 </script>
 {% endblock %}

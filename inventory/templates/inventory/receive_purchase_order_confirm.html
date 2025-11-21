@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}تأكيد استلام أمر الشراء{% endblock %}
+
+{% block page_title %}تأكيد استلام أمر شراء #{{ order.id }}{% endblock %}
+
+{% block content %}
+
+<div class="card border-success">
+    <div class="card-header bg-success text-white">
+        تأكيد عملية الاستلام
+    </div>
+    <div class="card-body">
+        <h5 class="card-title">هل أنت متأكد أنك تريد استلام البضاعة الخاصة بأمر الشراء رقم #{{ order.id }} من المورد "{{ order.supplier.name }}"؟</h5>
+        <p class="card-text">سيؤدي هذا الإجراء إلى زيادة كميات المنتجات التالية في مخزونك:</p>
+        
+        <ul class="list-group mb-3">
+            {% for item in order.items.all %}
+                <li class="list-group-item">
+                    <strong>{{ item.product.name }}:</strong> سيتم إضافة كمية ({{ item.quantity }})
+                </li>
+            {% endfor %}
+        </ul>
+        
+        <p class="text-danger fw-bold">تحذير: لا يمكن التراجع عن هذه العملية.</p>
+        
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success">نعم، تأكيد الاستلام</button>
+            <a href="{% url 'purchase_order_detail' pk=order.pk %}" class="btn btn-secondary">إلغاء</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

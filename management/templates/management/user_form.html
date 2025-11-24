@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}تعديل مستخدم{% endblock %}
+
+{% block page_title %}
+تعديل بيانات المستخدم: {{ user_obj.username }}
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <hr>
+                    <button type="submit" class="btn btn-success">حفظ التغييرات</button>
+                    <a href="{% url 'user_list' %}" class="btn btn-secondary">إلغاء</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">إجراءات إضافية</div>
+            <div class="card-body">
+                <p>إعادة تعيين كلمة مرور المستخدم.</p>
+                <!-- --- الزر الجديد --- -->
+                <a href="{% url 'change_user_password' pk=user_obj.pk %}" class="btn btn-warning">
+                    <i class="bi bi-key-fill me-1"></i> تغيير كلمة المرور
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

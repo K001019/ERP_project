@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}سجل التدقيق{% endblock %}
+
+{% block page_title %}سجل التدقيق وتتبع التغييرات{% endblock %}
+
+{% block content %}
+
+<div class="card">
+    <div class="card-header">
+        آخر 100 تغيير تم في النظام
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm table-striped">
+                <thead>
+                    <tr>
+                        <th>التاريخ والوقت</th>
+                        <th>نوع السجل</th>
+                        <th>معرّف السجل</th>
+                        <th>نوع التغيير</th>
+                        <th>المستخدم</th>
+                        <th>التفاصيل</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in history_records %}
+                    <tr>
+                        <td>{{ record.history_date|date:"Y-m-d H:i:s" }}</td>
+                        <td>{{ record.verbose_name }}</td>
+                        <td>{{ record.instance }}</td>
+                        <td>
+                            {% if record.history_type == '+' %}
+                            <span class="badge bg-success">إنشاء</span>
+                            {% elif record.history_type == '~' %}
+                            <span class="badge bg-primary">تعديل</span>
+                            {% elif record.history_type == '-' %}
+                            <span class="badge bg-danger">حذف</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ record.history_user.username|default:"نظام" }}</td>
+                        <td>
+
+                            <a href="{% url 'history_detail' model_name=record.model_name_slug pk=record.instance.pk history_id=record.history_id %}"
+                                class="btn btn-sm btn-outline-primary">
+                                عرض التغييرات
+                            </a>
+
+
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">لا توجد سجلات تدقيق لعرضها.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // دالة مساعدة لإضافة الاسم المقروء للنماذج
+    // هذا الحل يتم من جانب العميل لتبسيط دالة العرض في Django
+    document.addEventListener('DOMContentLoaded', function () {
+        // تعريف الأسماء المقروءة
+        const modelNames = {
+            'HistoricalEmployee': 'موظف',
+            'HistoricalProduct': 'منتج',
+            'HistoricalSalesOrder': 'أمر مبيع'
+        };
+
+        // هذا الجزء يتطلب تعديل طفيف في دالة العرض لتمرير اسم النموذج
+        // لتبسيط الأمر الآن، سنقوم بتعديل دالة العرض
+    });
+</script>
+
+{% endblock %}

@@ -50,6 +50,14 @@
           </a>
           <ul class="dropdown-menu dropdown-menu-end">
             <li>
+              <a class="dropdown-item" href="{% url 'password_change' %}">
+                <i class="bi bi-key me-2"></i>تغيير كلمة المرور
+              </a>
+            </li>
+            <li>
+              <hr class="dropdown-divider">
+            </li>
+            <li>
               <form method="post" action="{% url 'logout' %}">
                 {% csrf_token %}
                 <button type="submit" class="dropdown-item text-danger">
@@ -128,6 +136,37 @@
             <li class="nav-item">
               <a class="nav-link" href="{% url 'main_report' %}">التقارير</a>
             </li>
+            {% endif %}
+            {# --- قسم الإدارة للمدير الأعلى فقط --- #}
+            {% if user.is_superuser %}
+            <hr>
+            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+              <span>إدارة النظام</span>
+            </h6>
+            <ul class="nav flex-column mb-2">
+              <li class="nav-item">
+                <a class="nav-link {% if 'management/users' in request.path %}active{% endif %}"
+                  href="{% url 'user_list' %}">
+                  <i class="bi bi-shield-lock-fill me-2"></i>
+                  المستخدمين والأدوار
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {% if 'management/permissions' in request.path %}active{% endif %}"
+                  href="{% url 'manage_permissions' %}">
+                  <i class="bi bi-person-check-fill me-2"></i>
+                  إدارة الصلاحيات
+                </a>
+              </li>
+              <!-- --- الرابط الجديد --- -->
+              <li class="nav-item">
+                <a class="nav-link {% if 'management/audit-trail' in request.path %}active{% endif %}"
+                  href="{% url 'audit_trail' %}">
+                  <i class="bi bi-person-lines-fill me-2"></i>
+                  سجل التدقيق
+                </a>
+              </li>
+            </ul>
             {% endif %}
           </ul>
         </div>

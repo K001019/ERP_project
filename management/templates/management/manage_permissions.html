@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}إدارة الصلاحيات{% endblock %}
+
+{% block page_title %}إدارة صلاحيات الأدوار{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="POST" id="permissions-form">
+            {% csrf_token %}
+            <div class="row align-items-end">
+                <div class="col-md-6">
+                    <label for="group-select" class="form-label"><strong>1. اختر الدور لعرض/تعديل صلاحياته:</strong></label>
+                    <select id="group-select" name="group_id" class="form-select form-select-lg">
+                        <option value="">--- اختر دورًا ---</option>
+                        {% for group in groups %}
+                            <option value="{{ group.id }}" data-permissions="{% for perm in group.permissions.all %}{{ perm.id }},{% endfor %}">
+                                {{ group.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <hr>
+
+            <div id="permissions-container" class="d-none">
+                <h5><strong>2. حدد الصلاحيات الممنوحة لهذا الدور:</strong></h5>
+                <div class="row mt-3">
+                    {% for content_type in content_types %}
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header bg-light">
+                                    <strong>{{ content_type.app_label|title }} - {{ content_type.name }}</strong>
+                                </div>
+                                <div class="card-body">
+                                    {% for perm in content_type.permission_set.all %}
+                                        <div class="form-check">
+                                            <input class="form-check-input permission-checkbox" type="checkbox" name="permissions" value="{{ perm.id }}" id="perm-{{ perm.id }}">
+                                            <label class="form-check-label" for="perm-{{ perm.id }}">
+                                                {{ perm.name }}
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <hr>
+                <button type="submit" class="btn btn-success btn-lg">حفظ التغييرات لهذا الدور</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const groupSelect = document.getElementById('group-select');
+    const permissionsContainer = document.getElementById('permissions-container');
+    const allCheckboxes = document.querySelectorAll('.permission-checkbox');
+
+    groupSelect.addEventListener('change', function() {
+        if (!this.value) {
+            permissionsContainer.classList.add('d-none');
+            return;
+        }
+        
+        // إظهار حاوية الصلاحيات
+        permissionsContainer.classList.remove('d-none');
+
+        // 1. إلغاء تحديد كل مربعات الاختيار
+        allCheckboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+
+        // 2. الحصول على الصلاحيات الخاصة بالدور المحدد
+        const selectedOption = this.options[this.selectedIndex];
+        const permissionsStr = selectedOption.dataset.permissions;
+        
+        if (!permissionsStr) return;
+        
+        const groupPermissionIds = permissionsStr.split(',').filter(id => id); // filter لإزالة القيم الفارغة
+
+        // 3. تحديد المربعات المطابقة لصلاحيات الدور
+        allCheckboxes.forEach(checkbox => {
+            if (groupPermissionIds.includes(checkbox.value)) {
+                checkbox.checked = true;
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

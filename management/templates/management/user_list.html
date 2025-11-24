@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}إدارة المستخدمين{% endblock %}
+
+{% block page_title %}إدارة المستخدمين والأدوار{% endblock %}
+
+{% block content %}
+
+<div class="card">
+    <div class="card-header">
+        <span>قائمة المستخدمين</span>
+        <!-- يمكن إضافة زر "إضافة مستخدم" هنا لاحقًا إذا أردنا فصل إنشاء المستخدم عن إنشاء الموظف -->
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>اسم المستخدم</th>
+                        <th>البريد الإلكتروني</th>
+                        <th>الدور (الصلاحيات)</th>
+                        <th>حالة الحساب</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user_obj in users %}
+                    <tr>
+                        <td>{{ user_obj.username }}</td>
+                        <td>{{ user_obj.email }}</td>
+                        <td>
+                            {% for group in user_obj.groups.all %}
+                            <span class="badge bg-primary">{{ group.name }}</span>
+                            {% empty %}
+                            <span class="badge bg-secondary">بدون دور</span>
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% if user_obj.is_active %}
+                            <span class="badge bg-success">نشط</span>
+                            {% else %}
+                            <span class="badge bg-danger">غير نشط</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'user_edit' pk=user_obj.pk %}" class="btn btn-sm btn-primary">تعديل</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">لا يوجد مستخدمين لعرضهم.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

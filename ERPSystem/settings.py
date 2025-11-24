@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'simple_history',
-    'management.apps.ManagementConfig'
+    'management.apps.ManagementConfig',
      # My Apps
     'employees.apps.EmployeesConfig',
     'inventory.apps.InventoryConfig',

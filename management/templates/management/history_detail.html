@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}تفاصيل التغيير{% endblock %}
+
+{% block page_title %}
+تفاصيل التغيير في سجل #{{ record.instance.pk }}
+{% endblock %}
+
+{% block content %}
+
+<div class="card mb-4">
+    <div class="card-header">
+        معلومات عامة عن التغيير
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>نوع السجل:</strong> {{ record.verbose_name }}</p>
+                <p><strong>معرّف السجل:</strong> {{ record.instance }}</p>
+                <p><strong>تاريخ التغيير:</strong> {{ record.history_date|date:"Y-m-d H:i:s" }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>نوع العملية:</strong> 
+                    {% if record.history_type == '+' %} إنشاء {% elif record.history_type == '~' %} تعديل {% else %} حذف {% endif %}
+                </p>
+                <p><strong>تم بواسطة المستخدم:</strong> {{ record.history_user.username|default:"نظام" }}</p>
+                <p><strong>سبب التغيير:</strong> {{ record.history_change_reason|default:"لا يوجد" }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        الحقول التي تم تغييرها
+    </div>
+    <div class="card-body">
+        {% if changed_fields %}
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>الحقل</th>
+                        <th>القيمة القديمة</th>
+                        <th>القيمة الجديدة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for field in changed_fields %}
+                    <tr>
+                        <td>{{ field.field }}</td>
+                        <td><del class="text-danger">{{ field.old }}</del></td>
+                        <td><ins class="text-success">{{ field.new }}</ins></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% elif record.history_type == '+' %}
+            <div class="alert alert-success">
+                هذه عملية إنشاء سجل جديد. جميع الحقول تعتبر جديدة.
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                لا توجد تغييرات مسجلة للمقارنة.
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="{% url 'audit_trail' %}" class="btn btn-secondary">العودة إلى سجل التدقيق</a>
+</div>
+
+{% endblock %}

@@ -5,7 +5,7 @@ from django.db import models
 from django.utils import timezone
 from inventory.models import Product  # استيراد نموذج المنتج من تطبيق المخازن
 from employees.models import Employee # استيراد نموذج الموظف (لربط المبيعات بالموظف)
-
+from simple_history.models import HistoricalRecords
 # نموذج العملاء
 class Customer(models.Model):
     name = models.CharField(max_length=200, verbose_name="اسم العميل")
@@ -34,6 +34,8 @@ class SalesOrder(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING', verbose_name="حالة الطلب")
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name="المبلغ الإجمالي")
     created_by = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="تم إنشاؤه بواسطة")
+    
+    history = HistoricalRecords()
 
     def __str__(self):
         return f"طلب رقم #{self.id} للعميل {self.customer.name}"

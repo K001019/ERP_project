@@ -3,13 +3,13 @@
 # Register your models here.
 from django.contrib import admin
 from .models import Customer, SalesOrder, OrderItem
-
+from simple_history.admin import SimpleHistoryAdmin
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
     extra = 1 # عدد الحقول الفارغة الجديدة التي تظهر
 
 @admin.register(SalesOrder)
-class SalesOrderAdmin(admin.ModelAdmin):
+class SalesOrderAdmin(SimpleHistoryAdmin):
     list_display = ('id', 'customer', 'order_date', 'status', 'total_amount')
     list_filter = ('status', 'order_date')
     search_fields = ('customer__name',)

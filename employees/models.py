@@ -3,7 +3,7 @@
 # Create your models here.
 from django.db import models
 from django.contrib.auth.models import User # لاستيراد نظام المستخدمين الجاهز من Django
-
+from simple_history.models import HistoricalRecords
 class Employee(models.Model):
     # ربط الموظف بحساب مستخدم للدخول إلى النظام
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='employee_profile', null=True, blank=True)
@@ -16,7 +16,8 @@ class Employee(models.Model):
     hire_date = models.DateField(verbose_name="تاريخ التعيين")
     salary = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="الراتب")
     is_active = models.BooleanField(default=True, verbose_name="نشط")
-
+    
+    history = HistoricalRecords()
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 

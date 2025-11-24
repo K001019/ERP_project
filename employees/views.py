@@ -9,6 +9,7 @@ from django.db import transaction
 from django.contrib import messages
 import csv
 from django.http import HttpResponse
+from .tasks import send_welcome_email
 
 @login_required
 @permission_required('employees.view_employee', raise_exception=True)
@@ -42,6 +43,10 @@ def employee_create_view(request):
             employee = form.save(commit=False)
             employee.user = user
             employee.save()
+            # --- استدعاء المهمة في الخلفية ---
+            # .delay() هي الطريقة التي نخبر بها Celery بتشغيل المهمة
+            # نمرر فقط الـ ID الخاص بالموظف، وليس الكائن بأكمله
+            send_welcome_email.delay(employee.id)
 
             messages.success(request, f"تم إنشاء حساب للموظف '{employee.first_name}' بنجاح.")
             

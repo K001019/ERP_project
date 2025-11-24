@@ -4,7 +4,7 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
-
+from simple_history.models import HistoricalRecords
 # نموذج الموردين
 class Supplier(models.Model):
     name = models.CharField(max_length=200, unique=True, verbose_name="اسم المورد")
@@ -31,6 +31,8 @@ class Product(models.Model):
     unit_of_measure = models.CharField(max_length=50, verbose_name="وحدة القياس", help_text="مثال: قطعة، كجم، لتر")
     supplier = models.ForeignKey(Supplier, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="المورد")
     reorder_level = models.PositiveIntegerField(default=10, verbose_name="حد إعادة الطلب")
+    
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.name

@@ -56,8 +56,24 @@ def customer_delete_view(request, pk):
 @login_required
 @permission_required('sales.view_salesorder', raise_exception=True)
 def sales_order_list_view(request):
-    orders = SalesOrder.objects.all().order_by('-order_date') # عرض الأحدث أولاً
-    return render(request, 'sales/sales_order_list.html', {'orders': orders})
+    # جلب كل أوامر المبيعات
+    orders_query = SalesOrder.objects.select_related('customer').all().order_by('-order_date')
+
+    # --- الجزء الجديد للفلترة ---
+    # الحصول على قيمة الفلتر من الطلب (request.GET)
+    status_filter = request.GET.get('status', None)
+    
+    # إذا كانت هناك قيمة للفلتر وكانت ضمن الخيارات المتاحة، قم بالتصفية
+    if status_filter and status_filter in [choice[0] for choice in SalesOrder.STATUS_CHOICES]:
+        orders_query = orders_query.filter(status=status_filter)
+    # --- نهاية جزء الفلترة ---
+
+    context = {
+        'orders': orders_query,
+        'status_choices': SalesOrder.STATUS_CHOICES, # تمرير الخيارات للقالب
+        'current_status': status_filter, # تمرير الفلتر الحالي لتمييزه
+    }
+    return render(request, 'sales/sales_order_list.html', context)
 
 @login_required
 @permission_required('sales.view_salesorder', raise_exception=True)

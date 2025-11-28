@@ -5,53 +5,43 @@
 {% block page_title %}تقارير الأداء الرئيسية{% endblock %}
 
 {% block content %}
+
 <div class="row">
-    <!-- التقرير الأول: المنتجات الأكثر مبيعًا -->
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">المنتجات الأكثر مبيعًا (حسب الكمية)</div>
+    <!-- الرسم البياني الأول: المنتجات الأكثر مبيعًا -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="bi bi-trophy-fill me-2"></i>المنتجات الأكثر مبيعًا (حسب الكمية)
+            </div>
             <div class="card-body">
-                <ul class="list-group">
-                    {% for product in top_selling_products %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {{ product.product__name }}
-                            <span class="badge bg-primary rounded-pill">{{ product.total_quantity_sold }}</span>
-                        </li>
-                    {% empty %}
-                        <li class="list-group-item">لا توجد بيانات مبيعات لعرضها.</li>
-                    {% endfor %}
-                </ul>
+                <canvas id="topProductsChart"></canvas>
             </div>
         </div>
     </div>
 
-    <!-- التقرير الثاني: العملاء الأكثر شراءً -->
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">العملاء الأكثر شراءً (حسب القيمة)</div>
+    <!-- الرسم البياني الثاني: العملاء الأكثر شراءً -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="bi bi-star-fill me-2"></i>العملاء الأكثر شراءً (حسب القيمة)
+            </div>
             <div class="card-body">
-                <ul class="list-group">
-                    {% for customer in top_customers %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {{ customer.customer__name }}
-                            <span class="badge bg-success rounded-pill">{{ customer.total_spent|floatformat:2 }}</span>
-                        </li>
-                    {% empty %}
-                        <li class="list-group-item">لا توجد بيانات طلبات لعرضها.</li>
-                    {% endfor %}
-                </ul>
+                <canvas id="topCustomersChart"></canvas>
             </div>
         </div>
     </div>
 </div>
 
-<div class="row mt-4">
-    <!-- التقرير الثالث: منتجات على وشك النفاذ -->
+<div class="row mt-2">
+    <!-- التقرير الثالث: منتجات على وشك النفاذ (يبقى كجدول) -->
     <div class="col-md-12">
         <div class="card">
-            <div class="card-header text-white bg-danger">تنبيه: منتجات على وشك النفاذ</div>
+            <div class="card-header text-white bg-danger">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>تنبيه: منتجات على وشك النفاذ
+            </div>
             <div class="card-body">
-                <table class="table table-sm">
+                {% if low_stock_products %}
+                <table class="table table-sm table-hover">
                     <thead>
                         <tr>
                             <th>المنتج</th>
@@ -66,15 +56,84 @@
                             <td>{{ product.quantity_in_stock }}</td>
                             <td>{{ product.reorder_level }}</td>
                         </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="3" class="text-center">لا توجد منتجات على وشك النفاذ حاليًا.</td>
-                        </tr>
                         {% endfor %}
                     </tbody>
                 </table>
+                {% else %}
+                <p class="mb-0">لا توجد منتجات على وشك النفاذ حاليًا.</p>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+
+{% block javascript %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // === الرسم البياني الأول: أفضل المنتجات (مخطط دائري - Pie Chart) ===
+        const topProductsCtx = document.getElementById('topProductsChart').getContext('2d');
+        const topProductsLabels = JSON.parse('{{ top_products_labels|safe }}');
+        const topProductsValues = JSON.parse('{{ top_products_values|safe }}');
+
+        new Chart(topProductsCtx, {
+            type: 'pie', // النوع: دائري
+            data: {
+                labels: topProductsLabels,
+                datasets: [{
+                    label: 'الكمية المباعة',
+                    data: topProductsValues,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(255, 206, 86, 0.7)',
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(153, 102, 255, 0.7)',
+                    ],
+                    borderColor: '#fff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+            }
+        });
+
+        // === الرسم البياني الثاني: أفضل العملاء (مخطط شريطي أفقي - Horizontal Bar Chart) ===
+        const topCustomersCtx = document.getElementById('topCustomersChart').getContext('2d');
+        const topCustomersLabels = JSON.parse('{{ top_customers_labels|safe }}');
+        const topCustomersValues = JSON.parse('{{ top_customers_values|safe }}');
+
+        new Chart(topCustomersCtx, {
+            type: 'bar', // النوع: شريطي
+            data: {
+                labels: topCustomersLabels,
+                datasets: [{
+                    label: 'إجمالي المبالغ المدفوعة',
+                    data: topCustomersValues,
+                    backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y', // <-- هذا السطر يجعله أفقيًا
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}

@@ -58,22 +58,37 @@ def dashboard_view(request):
 @login_required
 @permission_required('reports.view_report', raise_exception=True) # سننشئ هذه الصلاحية لاحقًا
 def reports_view(request):
-    # التقرير الأول: المنتجات الأكثر مبيعًا (حسب الكمية)
-    top_selling_products = OrderItem.objects.values('product__name').annotate(
-        total_quantity_sold=Sum('quantity')
-    ).order_by('-total_quantity_sold')[:10] # أعلى 10 منتجات
+    # --- بيانات الرسم البياني الأول: أفضل 5 منتجات مبيعًا (حسب الكمية) ---
+    top_selling_products_data = OrderItem.objects.values('product__name') \
+        .annotate(total_quantity_sold=Sum('quantity')) \
+        .order_by('-total_quantity_sold')[:5]
+    
+    top_products_labels = [item['product__name'] for item in top_selling_products_data]
+    top_products_values = [item['total_quantity_sold'] for item in top_selling_products_data]
+    
+    # --- بيانات الرسم البياني الثاني: أفضل 5 عملاء (حسب القيمة) ---
+    top_customers_data = SalesOrder.objects.values('customer__name') \
+        .annotate(total_spent=Sum('total_amount')) \
+        .order_by('-total_spent')[:5]
+        
+    top_customers_labels = [item['customer__name'] for item in top_customers_data]
+    top_customers_values = [float(item['total_spent']) for item in top_customers_data]
 
-    # التقرير الثاني: العملاء الأكثر شراءً (حسب قيمة الطلبات)
-    top_customers = SalesOrder.objects.values('customer__name').annotate(
-        total_spent=Sum('total_amount')
-    ).order_by('-total_spent')[:10] # أعلى 10 عملاء
-
-    # التقرير الثالث: ملخص المخزون (المنتجات التي على وشك النفاذ)
+    # --- بيانات الجدول الثالث: منتجات على وشك النفاذ (تبقى كما هي) ---
     low_stock_products = Product.objects.filter(quantity_in_stock__lte=F('reorder_level'))
 
     context = {
-        'top_selling_products': top_selling_products,
-        'top_customers': top_customers,
+        # تمرير البيانات بصيغة JSON للرسوم البيانية
+        'top_products_labels': json.dumps(top_products_labels),
+        'top_products_values': json.dumps(top_products_values),
+        'top_customers_labels': json.dumps(top_customers_labels),
+        'top_customers_values': json.dumps(top_customers_values),
+        
+        # تمرير بيانات الجدول
         'low_stock_products': low_stock_products,
+        
+        # (اختياري) يمكننا تمرير البيانات النصية أيضًا إذا أردنا عرضها بجانب الرسم
+        'top_selling_products_list': top_selling_products_data,
+        'top_customers_list': top_customers_data,
     }
     return render(request, 'reports/main_report.html', context)

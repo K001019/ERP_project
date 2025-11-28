@@ -16,26 +16,44 @@ import csv
 from django.http import HttpResponse
 from django.db import transaction
 from django.contrib import messages
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 #from .models import StockMovement
 # ---- CRUD Views for Products ----
 
 @login_required
 @permission_required('inventory.view_product', raise_exception=True)
 def product_list_view(request):
-    # الحصول على قيمة البحث من الرابط، إذا كانت موجودة
     search_query = request.GET.get('q', None)
-    products = Product.objects.all().order_by('name')
+    
+    # لا نطبق الترتيب هنا بعد الآن
+    products_list = Product.objects.select_related('supplier').all()
+
     if search_query:
-        # استخدام Q objects للبحث في عدة حقول في نفس الوقت
-        # __icontains تعني "يحتوي على" وهي غير حساسة لحالة الأحرف
-        products = products.filter(
+        products_list = products_list.filter(
             Q(name__icontains=search_query) |
             Q(sku__icontains=search_query) |
             Q(supplier__name__icontains=search_query)
         )
+    
+    # تطبيق الترتيب هنا
+    products_list = products_list.order_by('name')
+
+    # --- الجزء الجديد للترقيم ---
+    paginator = Paginator(products_list, 10) # عرض 10 منتجات في كل صفحة
+    page_number = request.GET.get('page')
+    try:
+        products = paginator.page(page_number)
+    except PageNotAnInteger:
+        # إذا لم تكن 'page' رقمًا، اعرض الصفحة الأولى
+        products = paginator.page(1)
+    except EmptyPage:
+        # إذا كانت 'page' خارج النطاق، اعرض آخر صفحة من النتائج
+        products = paginator.page(paginator.num_pages)
+    # --- نهاية جزء الترقيم ---
+    
     context = {
-        'products': products,
-        'search_query': search_query, # نمرر قيمة البحث للقالب لنتمكن من عرضها في مربع البحث
+        'products': products, # مرر كائن الصفحة بدلاً من القائمة الكاملة
+        'search_query': search_query,
     }
     return render(request, 'inventory/product_list.html', context)
 

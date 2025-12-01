@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}مستشار الأعمال الذكي{% endblock %}
+
+{% block page_title %}مستشار الأعمال الذكي (مدعوم بـ Gemini){% endblock %}
+
+{% block content %}
+<style>
+    #chat-window {
+        height: 50vh;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        background-color: #f8f9fa;
+        display: flex;
+        flex-direction: column;
+    }
+    .chat-message {
+        padding: 0.75rem 1rem;
+        border-radius: 1rem;
+        margin-bottom: 0.5rem;
+        max-width: 80%;
+        line-height: 1.5;
+    }
+    .user-message {
+        background-color: #0d6efd;
+        color: white;
+        align-self: flex-end;
+        border-bottom-right-radius: 0;
+    }
+    .ai-message {
+        background-color: #e9ecef;
+        color: #212529;
+        align-self: flex-start;
+        border-bottom-left-radius: 0;
+    }
+    .typing-indicator {
+        align-self: flex-start;
+        color: #6c757d;
+    }
+</style>
+
+<div id="chat-container">
+    <div id="chat-window">
+        <div class="chat-message ai-message">
+            مرحباً! أنا مستشارك الذكي. كيف يمكنني مساعدتك اليوم في تحليل بيانات عملك وزيادة أرباحك؟
+        </div>
+    </div>
+    <div class="mt-3 d-flex">
+        <input type="text" id="chat-input" class="form-control" placeholder="اسأل عن اقتراحات لزيادة المبيعات، تحليل المخزون، إلخ...">
+        <button id="send-btn" class="btn btn-primary ms-2">إرسال</button>
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block javascript %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const chatWindow = document.getElementById('chat-window');
+    const chatInput = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+
+    const addMessage = (message, sender) => {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chat-message ${sender}-message`;
+        // تحويل أسطر markdown البسيطة إلى HTML
+        message = message.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // Bold
+        message = message.replace(/\n/g, '<br>'); // Newlines
+        messageDiv.innerHTML = message;
+        chatWindow.appendChild(messageDiv);
+        chatWindow.scrollTop = chatWindow.scrollHeight; // Scroll to bottom
+    };
+
+    const handleSend = async () => {
+        const question = chatInput.value.trim();
+        if (!question) return;
+
+        addMessage(question, 'user');
+        chatInput.value = '';
+        chatInput.disabled = true;
+        sendBtn.disabled = true;
+
+        // Typing indicator
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'chat-message ai-message typing-indicator';
+        typingDiv.textContent = '...يفكر';
+        chatWindow.appendChild(typingDiv);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+
+        try {
+            const response = await fetch("{% url 'ask_gemini' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ question: question })
+            });
+
+            chatWindow.removeChild(typingDiv);
+
+            if (!response.ok) {
+                throw new Error('حدث خطأ أثناء الاتصال بالخادم.');
+            }
+
+            const data = await response.json();
+            if (data.answer) {
+                addMessage(data.answer, 'ai');
+            } else {
+                addMessage(data.error || 'حدث خطأ غير معروف.', 'ai');
+            }
+        } catch (error) {
+            chatWindow.removeChild(typingDiv);
+            addMessage(error.message, 'ai');
+        } finally {
+            chatInput.disabled = false;
+            sendBtn.disabled = false;
+            chatInput.focus();
+        }
+    };
+
+    sendBtn.addEventListener('click', handleSend);
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            handleSend();
+        }
+    });
+});
+</script>
+{% endblock %}

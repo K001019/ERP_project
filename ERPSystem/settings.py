@@ -150,3 +150,6 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
+
+# Google Gemini API Key
+GEMINI_API_KEY = "AIzaSyBuezydBChMji_kTImJ7nyGj-d1CbXhH-0"

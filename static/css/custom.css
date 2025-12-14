@@ -1,58 +1,369 @@
 /* static/css/custom.css */
+/* 
+   الهوية البصرية: "الأفق الزجاجي" (Glass Horizon)
+   - تصميم استعراضي يركز على البريق والحركة.
+*/
 
-/* 1. Typography & Body */
-body {
-  font-family: 'Cairo', sans-serif;
-  font-size: 0.95rem;
-  background-color: #f8f9fa; /* A slightly softer background color */
+/* --------------------------------------------------------------
+   1. تعريف لوحة الألوان الحيوية
+   -------------------------------------------------------------- */
+:root {
+  --color-primary: #6D55A4;
+  /* بنفسجي عميق */
+  --color-secondary: #247BA0;
+  /* أزرق محيطي */
+  --color-accent: #33D4A8;
+  /* أخضر النعناع الحيوي */
+  --color-highlight: #F2A65A;
+  /* برتقالي دافئ */
+
+  --color-background: #F0F2F5;
+  /* خلفية ناعمة جدًا */
+  --color-surface: rgba(255, 255, 255, 0.7);
+  /* أبيض شبه شفاف للزجاجية */
+  --color-surface-solid: #FFFFFF;
+  /* أبيض صلب للقوائم المنسدلة */
+
+  --color-text-primary: #1C2B3A;
+  --color-text-secondary: #5A6B7B;
+  --color-border: rgba(0, 0, 0, 0.08);
+
+  --gradient-primary: linear-gradient(135deg, var(--color-primary), #8A72BF);
+  --gradient-accent: linear-gradient(135deg, var(--color-accent), #50E3C2);
 }
 
-/* 2. Sidebar Styling */
+/* --------------------------------------------------------------
+   2. تأثير مؤشر الماوس المخصص
+   -------------------------------------------------------------- */
+body::after {
+  content: '';
+  position: fixed;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  opacity: 0.3;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition: width 0.2s, height 0.2s, opacity 0.2s;
+  z-index: 9999;
+  backdrop-filter: blur(2px);
+}
+
+body:hover::after {
+  opacity: 0.5;
+}
+
+/* --------------------------------------------------------------
+   3. الأنماط العامة والانتقالات
+   -------------------------------------------------------------- */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+body {
+  font-family: 'Cairo', sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  overflow-x: hidden;
+  /* لمنع الحركة الأفقية */
+}
+
+/* --------------------------------------------------------------
+   4. تصميم المكونات (تأثير الزجاج)
+   -------------------------------------------------------------- */
+.card,
+.navbar,
+.alert {
+  background: var(--color-surface);
+  backdrop-filter: blur(10px);
+  /* التأثير الزجاجي */
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+}
+
+.card-header {
+  background: transparent;
+  border-bottom: 1px solid var(--color-border);
+  font-weight: 600;
+}
+
+/* الأزرار (Buttons) بتدرجات لونية وظلال */
+.btn {
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-weight: 600;
+  border: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  color: white;
+}
+
+.btn:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 7px 20px rgba(0, 0, 0, 0.2);
+}
+
+.btn-primary,
+.btn-success {
+  background-image: var(--gradient-primary);
+}
+
+.btn-warning,
+.btn-danger {
+  background-image: var(--gradient-accent);
+  color: var(--color-text-primary);
+}
+
+.btn-secondary,
+.btn-info {
+  background-color: var(--color-secondary);
+}
+
+/* --------------------------------------------------------------
+   5. الشريط الجانبي والعلوي (Navigation)
+   -------------------------------------------------------------- */
+header.navbar {
+    background: var(--color-surface) !important; /* استخدام !important لتجاوز Bootstrap */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+}
+
+.navbar-brand strong {
+  color: var(--color-primary);
+}
+
 .sidebar {
-  background-color: #2c3e50; /* Dark Slate Gray */
-  color: #ecf0f1;
+  background: var(--color-surface);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
 }
 
 .sidebar .nav-link {
-  color: #bdc3c7; /* Silver */
-  padding: 12px 20px;
-  font-weight: 600;
-  transition: all 0.2s ease-in-out;
-  border-right: 4px solid transparent; /* For active indicator */
+  color: var(--color-text-secondary);
+  padding: 14px 24px;
+  font-weight: 500;
+  border-radius: 8px;
+  margin: 4px 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar .nav-link:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: var(--gradient-primary);
+  transition: left 0.4s ease;
+  z-index: -1;
 }
 
 .sidebar .nav-link:hover {
-  background-color: #34495e; /* Wet Asphalt */
-  color: #ffffff;
+  color: white;
 }
 
+.sidebar .nav-link:not(.active):hover:before {
+  left: 0;
+}
+
+/* النمط الدائم للرابط النشط */
 .sidebar .nav-link.active {
-  color: #ffffff; /* White text for active link */
-  background-color: #202d39;
-  border-right-color: #3498db; /* Peter River Blue */
+  color: white;
+  background-image: var(--gradient-primary);
+  box-shadow: 0 4px 15px rgba(109, 85, 164, 0.4);
 }
 
-.sidebar .nav-link .bi {
-  font-size: 1.1rem; /* Adjust icon size */
-  vertical-align: middle;
+/* تأكيد أن النص يبقى أبيض حتى عند مرور الماوس فوق الرابط النشط */
+.sidebar .nav-link.active:hover {
+  color: white;
 }
 
-/* 3. Main Content Area */
-main {
-  padding-top: 1rem;
+.sidebar .sidebar-heading {
+  color: var(--color-primary) !important;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
-.alert {
-  border-radius: 0.5rem;
+.sidebar hr {
+  height: 5px;
+  /* زيادة السماكة */
+  border: none;
+  background-image: linear-gradient(to right, transparent, rgb(66, 3, 115), transparent);
+  /* زيادة الوضوح */
+  margin: 1rem 0.5rem;
+  /* تعديل الهوامش */
 }
 
-/* 4. Responsive adjustments for sidebar */
-@media (max-width: 767.98px) {
-  .sidebar {
-    height: 100vh;
-    position: fixed;
-    top: 0;
-    right: 0; /* Adjust for RTL */
-    z-index: 1030;
-  }
+/* --------------------------------------------------------------
+   6. الجداول والمدخلات
+   -------------------------------------------------------------- */
+.table {
+  background-color: var(--color-surface);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.table thead th {
+  background-color: transparent;
+  border-bottom: 2px solid var(--color-primary);
+  color: var(--color-primary);
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(109, 85, 164, 0.15);
+}
+
+/* --------------------------------------------------------------
+   7. تعديلات الوضوح والتفاعلية الإضافية
+   -------------------------------------------------------------- */
+
+/* 1. زيادة وضوح النصوص الثانوية داخل البطاقات */
+.card,
+.card p,
+.card span,
+.card small,
+.card td,
+.card li {
+  color: var(--color-text-primary);
+  /* لون أغمق قليلاً للنصوص الثانوية */
+  font-weight: 500;
+  /* زيادة سماكة الخط قليلاً */
+}
+
+.card h1,
+.card h2,
+.card h3,
+.card h4,
+.card h5,
+.card h6 {
+  color: var(--color-text-primary);
+}
+
+/* زيادة وضوح أزرار الفلترة والتصدير */
+/* زيادة وضوح الأزرار الثانوية (outline) */
+.btn-outline-secondary,
+.btn-outline-primary {
+  border-width: 2px;
+  /* جعل الإطار أسمك قليلاً */
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  /* لون النص الافتراضي */
+  border-color: var(--color-border);
+  background-color: transparent;
+}
+
+.btn-outline-secondary:hover,
+.btn-outline-primary:hover {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+.btn-outline-primary.active {
+  /* حالة الزر النشط في الفلترة */
+  background-color: var(--color-primary);
+  color: white;
+}
+
+
+/* 2. تطبيق الستايل على قائمة المستخدم المنسدلة */
+/* --------------------------------------------------------------
+   تعديلات الشريط العلوي والقائمة المنسدلة
+   -------------------------------------------------------------- */
+
+.navbar .nav-link {
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.navbar .nav-link:hover {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+}
+
+.dropdown-menu {
+  background: var(--color-surface);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+  padding: 0.5rem 0;
+  margin-top: 0.5rem !important;
+  /* إضافة مسافة صغيرة */
+}
+
+/* ... بقية أنماط .dropdown-item كما هي ... */
+
+.dropdown-item {
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  padding: 0.5rem 1.2rem;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background-color: rgba(109, 85, 164, 0.1);
+  /* لمسة بنفسجية شفافة */
+  color: var(--color-primary);
+}
+
+.dropdown-item.text-danger:hover {
+  color: #dc3545 !important;
+}
+
+.dropdown-divider {
+  border-top: 2px solid var(--color-border);
+}
+
+/* 3. لمسة تفاعلية للبطاقات (تأثير إضاءة يتبع الماوس) */
+/* --------------------------------------------------------------
+   تأثير إضاءة البطاقات
+   -------------------------------------------------------------- */
+.card {
+  position: relative;
+  /* ضروري لعمل التأثير */
+  overflow: hidden;
+  /* ضروري لإخفاء الضوء خارج البطاقة */
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  width: 200px;
+  /* حجم أكبر للضوء */
+  height: 200px;
+  background: radial-gradient(circle, var(--color-accent) 0%, rgba(255, 255, 255, 0) 70%);
+  border-radius: 50%;
+  /* استخدام المتغيرات التي قمنا بتعيينها في JS */
+  left: var(--mouse-x);
+  top: var(--mouse-y);
+  transform: translate(-50%, -50%);
+  /* توسيط الضوء على المؤشر */
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  /* السماح للنقر بالمرور من خلال الضوء */
+}
+
+.card:hover::before {
+  opacity: 0.2;
+  /* زيادة وضوح الضوء قليلاً */
 }

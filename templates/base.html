@@ -19,12 +19,16 @@
   <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-  <!-- Custom CSS -->
-  <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+  <!-- Animate.css for Animations -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
 
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{% static 'css/custom.css' %}?v=1.4">
 </head>
 
 <body class="bg-light">
+  <!-- Animated Gradient Background -->
+  <div class="animated-background"></div>
 
   <!-- =============================================== -->
   <!--                      HEADER                     -->
@@ -88,53 +92,57 @@
             </li>
             {% if perms.employees.view_employee %}
             <li class="nav-item">
-              <a class="nav-link {% if request.resolver_match.url_name == 'employee_list' %}active{% endif %}"
+              <a class="nav-link {% if 'employee' in request.resolver_match.url_name %}active{% endif %}"
                 href="{% url 'employee_list' %}">
                 <i class="bi bi-people-fill me-2"></i>
                 الموظفين
               </a>
             </li>
             {% endif %}
+
             {% if perms.inventory.view_product %}
             <li class="nav-item">
-              <a class="nav-link {% if 'products/' in request.path %}active{% endif %}" href="{% url 'product_list' %}">
-                <i class="bi bi-box-seam-fill me-2"></i>
-                المنتجات
+              <a class="nav-link {% if 'product' in request.resolver_match.url_name %}active{% endif %}"
+                href="{% url 'product_list' %}">
+                <i class="bi bi-box-seam-fill me-2"></i> المنتجات
               </a>
             </li>
             {% endif %}
 
-            {# --- إضافة شرط صلاحية مستقل لأوامر الشراء --- #}
             {% if perms.inventory.view_purchaseorder %}
             <li class="nav-item">
-              <a class="nav-link {% if 'purchase-orders' in request.path %}active{% endif %}"
+              <a class="nav-link {% if 'purchase_order' in request.resolver_match.url_name %}active{% endif %}"
                 href="{% url 'purchase_order_list' %}">
-                <i class="bi bi-truck me-2"></i>
-                أوامر الشراء
+                <i class="bi bi-truck me-2"></i> أوامر الشراء
               </a>
             </li>
             {% endif %}
+
             {% if perms.sales.view_salesorder %}
             <li class="nav-item">
-              <a class="nav-link {% if request.resolver_match.url_name == 'sales_order_list' %}active{% endif %}"
+              <a class="nav-link {% if 'sales_order' in request.resolver_match.url_name %}active{% endif %}"
                 href="{% url 'sales_order_list' %}">
-                <i class="bi bi-cart-check-fill me-2"></i>
-                أوامر المبيعات
+                <i class="bi bi-cart-check-fill me-2"></i> أوامر المبيعات
               </a>
             </li>
             {% endif %}
+
             {% if perms.sales.view_customer %}
             <li class="nav-item">
-              <a class="nav-link {% if request.resolver_match.url_name == 'customer_list' %}active{% endif %}"
+              <a class="nav-link {% if 'customer' in request.resolver_match.url_name %}active{% endif %}"
                 href="{% url 'customer_list' %}">
-                <i class="bi bi-person-vcard-fill me-2"></i>
-                العملاء
+                <i class="bi bi-person-vcard-fill me-2"></i> العملاء
               </a>
             </li>
             {% endif %}
+
             {% if perms.reports.view_report %}
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'main_report' %}">التقارير</a>
+              <a class="nav-link {% if 'report' in request.resolver_match.url_name %}active{% endif %}"
+                href="{% url 'main_report' %}">
+                <i class="bi bi-file-earmark-bar-graph-fill me-2"></i>
+                التقارير
+              </a>
             </li>
             {% endif %}
             {# --- قسم الإدارة للمدير الأعلى فقط --- #}
@@ -226,6 +234,33 @@
   {% block javascript %}
   <!-- هذا البلوك يمكن استخدامه لإضافة JS خاص بكل صفحة -->
   {% endblock %}
+  <style>
+    .animated-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      z-index: -1;
+      background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+      background-size: 400% 400%;
+      animation: gradient 15s ease infinite;
+    }
+
+    @keyframes gradient {
+      0% {
+        background-position: 0% 50%;
+      }
+
+      50% {
+        background-position: 100% 50%;
+      }
+
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+  </style>
 
   <script>
     // --- كود إخفاء رسائل النجاح تلقائيًا ---
@@ -240,6 +275,37 @@
           const bsAlert = new bootstrap.Alert(alert);
           bsAlert.close();
         }, 3000);
+      });
+    });
+    // تأثير مؤشر الماوس
+    const cursor = document.querySelector('body::after');
+    window.addEventListener('mousemove', e => {
+      if (cursor) {
+        cursor.style.left = `${e.clientX}px`;
+        cursor.style.top = `${e.clientY}px`;
+      }
+    });
+
+    // إضافة أنيميشن للبطاقات عند تحميل الصفحة
+    document.addEventListener('DOMContentLoaded', function () {
+      const mainContent = document.querySelector('main');
+      if (mainContent) {
+        mainContent.classList.add('animate__animated', 'animate__fadeIn', 'animate__faster');
+      }
+    });
+    // --- كود تأثير إضاءة البطاقات ---
+    document.querySelectorAll('.card').forEach(card => {
+      card.addEventListener('mousemove', e => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        card.style.setProperty('--mouse-x', `${x}px`);
+        card.style.setProperty('--mouse-y', `${y}px`);
+      });
+      // إعادة تعيين موضع الضوء عند خروج الماوس
+      card.addEventListener('mouseleave', () => {
+        card.style.setProperty('--mouse-x', '-200px');
+        card.style.setProperty('--mouse-y', '-200px');
       });
     });
   </script>

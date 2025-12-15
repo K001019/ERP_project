@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual Environment
+venv/
+venv_old/
+
+# Django
+*.log
+db.sqlite3
+db.sqlite3-journal
+staticfiles/
+media/
+
+# IDE / Editor configuration
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment variables
+.env

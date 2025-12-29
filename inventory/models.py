@@ -1,11 +1,10 @@
-#from django.db import models
+# inventory/models.py
 
-# Create your models here.
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
 from simple_history.models import HistoricalRecords
-# نموذج الموردين
+
 class Supplier(models.Model):
     name = models.CharField(max_length=200, unique=True, verbose_name="اسم المورد")
     contact_person = models.CharField(max_length=100, blank=True, null=True, verbose_name="الشخص المسؤول")
@@ -20,7 +19,7 @@ class Supplier(models.Model):
         verbose_name = "المورد"
         verbose_name_plural = "الموردين"
 
-# نموذج المنتجات
+
 class Product(models.Model):
     name = models.CharField(max_length=200, unique=True, verbose_name="اسم المنتج")
     description = models.TextField(blank=True, null=True, verbose_name="الوصف")
@@ -32,6 +31,19 @@ class Product(models.Model):
     supplier = models.ForeignKey(Supplier, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="المورد")
     reorder_level = models.PositiveIntegerField(default=10, verbose_name="حد إعادة الطلب")
     
+    # --- الحقول الجديدة والمهمة التي كانت ناقصة ---
+    daily_consumption_rate = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        default=0.00, 
+        verbose_name="متوسط الاستهلاك اليومي"
+    )
+    prediction_last_updated = models.DateTimeField(
+        null=True, 
+        blank=True, 
+        verbose_name="آخر تحديث للتنبؤ"
+    )
+
     history = HistoricalRecords()
 
     def __str__(self):
@@ -41,7 +53,7 @@ class Product(models.Model):
         verbose_name = "المنتج"
         verbose_name_plural = "المنتجات"
 
-# نموذج حركة المخزون
+
 class StockMovement(models.Model):
     MOVEMENT_TYPES = [
         ('IN', 'إدخال مخزون'),

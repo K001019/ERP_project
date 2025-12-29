@@ -17,6 +17,10 @@ from django.http import HttpResponse
 from django.db import transaction
 from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+import json
+from django.db.models.functions import TruncDay
+from django.utils import timezone
+from datetime import timedelta, date
 #from .models import StockMovement
 # ---- CRUD Views for Products ----
 
@@ -88,59 +92,71 @@ def product_delete_view(request, pk):
 @login_required
 @permission_required('inventory.view_product', raise_exception=True) # يمكن إنشاء صلاحية مخصصة لاحقًا
 def prediction_view(request):
-    # الحصول على جميع المنتجات
+    """
+    دالة عرض سريعة جدًا لعرض نتائج التنبؤ المحسوبة مسبقًا،
+    بالإضافة إلى مخطط بياني لنشاط المبيعات اليومي.
+    """
+    # --------------------------------------------------
+    # --- الجزء الأول: إعداد بيانات الجدول (يبقى كما هو) ---
+    # --------------------------------------------------
     products = Product.objects.all()
     prediction_results = []
-
     for product in products:
-        # جمع بيانات الاستهلاك الشهري من حركة المخزون
-        consumption_data = StockMovement.objects.filter(
-            product=product,
-            movement_type='OUT'
-        ).annotate(
-            month=TruncMonth('movement_date')
-        ).values('month').annotate(
-            monthly_consumption=Sum('quantity')
-        ).values('month', 'monthly_consumption').order_by('month')
-
+        predicted_monthly_consumption = round(product.daily_consumption_rate * 30)
+        suggested_reorder = predicted_monthly_consumption - product.quantity_in_stock + product.reorder_level
         result = {
             'product_name': product.name,
             'current_stock': product.quantity_in_stock,
             'reorder_level': product.reorder_level,
-            'predicted_consumption': 'لا توجد بيانات كافية',
-            'suggested_reorder': 0
+            'daily_rate': f"{product.daily_consumption_rate:.2f}", 
+            'predicted_consumption': predicted_monthly_consumption,
+            'suggested_reorder': max(0, suggested_reorder),
+            'last_updated': product.prediction_last_updated,
         }
-
-        if len(consumption_data) >= 3: # نحتاج على الأقل 3 أشهر من البيانات
-            try:
-                # تحويل البيانات إلى Pandas DataFrame
-                df = pd.DataFrame(list(consumption_data))
-                df.set_index('month', inplace=True)
-                
-                # إعداد وتدريب النموذج
-                # seasonal_periods=12 إذا كانت لديك بيانات لعدة سنوات
-                model = ExponentialSmoothing(df['monthly_consumption'], trend='add', seasonal=None).fit()
-                
-                # التنبؤ للشهر القادم
-                forecast = model.forecast(1) # تنبؤ لفترة واحدة قادمة
-                predicted_quantity = int(round(forecast.iloc[0], 0))
-                
-                # التأكد من أن التنبؤ ليس سالبًا
-                predicted_quantity = max(0, predicted_quantity)
-                
-                result['predicted_consumption'] = predicted_quantity
-                
-                # حساب الكمية المقترح إعادة طلبها
-                # (الاستهلاك المتوقع - المخزون الحالي + حد إعادة الطلب)
-                suggested_reorder = predicted_quantity - product.quantity_in_stock + product.reorder_level
-                result['suggested_reorder'] = max(0, suggested_reorder)
-
-            except Exception as e:
-                result['predicted_consumption'] = f"خطأ في التحليل: {e}"
-
         prediction_results.append(result)
 
-    return render(request, 'inventory/prediction_report.html', {'results': prediction_results})
+    # --------------------------------------------------
+    # --- الجزء الثاني (الجديد): إعداد بيانات المخطط البياني ---
+    # --------------------------------------------------
+    
+    # 1. تحديد النطاق الزمني: آخر 30 يومًا
+    thirty_days_ago = timezone.now().date() - timedelta(days=30)
+    
+    # 2. الاستعلام عن إجمالي كميات المبيعات مجمعة حسب اليوم
+    daily_sales_data = StockMovement.objects.filter(
+        movement_type='OUT',
+        movement_date__date__gte=thirty_days_ago
+    ).annotate(
+        day=TruncDay('movement_date')  # تجميع حسب اليوم
+    ).values('day').annotate(
+        daily_total=Sum('quantity')   # حساب المجموع اليومي
+    ).order_by('day')
+
+    # 3. معالجة البيانات لملء الأيام التي لا توجد فيها مبيعات (قيمتها صفر)
+    # هذا يضمن أن المخطط البياني مستمر ومتصل
+    sales_dict = {item['day'].strftime('%Y-%m-%d'): item['daily_total'] for item in daily_sales_data}
+    chart_labels = []
+    chart_values = []
+    
+    # حلقة على كل يوم في آخر 30 يومًا
+    for i in range(30, -1, -1):
+        current_date = timezone.now().date() - timedelta(days=i)
+        date_str = current_date.strftime('%Y-%m-%d')
+        
+        # إضافة اليوم للتسميات (Labels) في المخطط
+        chart_labels.append(current_date.strftime('%d %b')) # مثال: "15 Dec"
+        
+        # إضافة قيمة المبيعات لهذا اليوم، أو صفر إذا لم تكن هناك مبيعات
+        chart_values.append(sales_dict.get(date_str, 0))
+
+    # 4. تجميع كل البيانات في الـ context
+    context = {
+        'results': prediction_results,
+        'sales_chart_labels': json.dumps(chart_labels),
+        'sales_chart_values': json.dumps(chart_values),
+    }
+
+    return render(request, 'inventory/prediction_report.html', context)
 
 @login_required
 @permission_required('inventory.view_product', raise_exception=True)

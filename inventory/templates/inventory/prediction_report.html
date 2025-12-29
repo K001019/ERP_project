@@ -5,40 +5,115 @@
 {% block page_title %}تقرير التنبؤ بالمخزون{% endblock %}
 
 {% block content %}
-<div class="card">
+
+<!-- --- المخطط البياني الجديد --- -->
+<div class="card mb-4 animate__animated animate__fadeInUp">
     <div class="card-header">
-        توقعات الاستهلاك للشهر القادم والكميات المقترح إعادة طلبها
+        <i class="bi bi-graph-up me-2"></i>نشاط المبيعات خلال الأيام الماضية (إجمالي القطع المباعة يوميًا)
+    </div>
+    <div class="card-body">
+        <div style="height: 300px;">
+            <canvas id="salesActivityChart"></canvas>
+        </div>
+    </div>
+</div>
+
+
+<!-- --- جدول التنبؤات (يبقى كما هو) --- -->
+<div class="card animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+    <div class="card-header">
+        توقعات الاستهلاك والكميات المقترح إعادة طلبها
     </div>
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table table-bordered">
-                <thead class="table-light">
+            <table class="table table-hover">
+                <thead>
                     <tr>
                         <th>المنتج</th>
                         <th>المخزون الحالي</th>
-                        <th>الاستهلاك المتوقع (الشهر القادم)</th>
+                        <th>متوسط الاستهلاك اليومي</th>
+                        <th>الاستهلاك المتوقع (30 يومًا)</th>
                         <th>حد إعادة الطلب</th>
-                        <th>الكمية المقترح طلبها</th>
+                        <th class="text-danger">الكمية المقترح طلبها</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for result in results %}
                     <tr>
-                        <td>{{ result.product_name }}</td>
+                        <td><strong>{{ result.product_name }}</strong></td>
                         <td>{{ result.current_stock }}</td>
+                        <td>{{ result.daily_rate }}</td>
                         <td>{{ result.predicted_consumption }}</td>
                         <td>{{ result.reorder_level }}</td>
                         <td class="fw-bold {% if result.suggested_reorder > 0 %}text-danger{% endif %}">
                             {{ result.suggested_reorder }}
                         </td>
                     </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">لا توجد بيانات لعرضها. قم بإضافة منتجات أولاً.</td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-        <div class="alert alert-info mt-3">
-            <strong>ملاحظة:</strong> يتم حساب التنبؤ بناءً على بيانات الاستهلاك التاريخية (حركة المخزون الصادرة). دقة التنبؤ تزداد كلما زادت البيانات المتاحة.
-        </div>
     </div>
 </div>
+{% endblock %}
+
+
+{% block javascript %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const ctx = document.getElementById('salesActivityChart').getContext('2d');
+        const labels = JSON.parse('{{ sales_chart_labels|safe }}');
+        const dataValues = JSON.parse('{{ sales_chart_values|safe }}');
+
+        // إنشاء تدرج لوني للمساحة تحت الخط
+        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'rgba(109, 85, 164, 0.4)'); // --color-primary with alpha
+        gradient.addColorStop(1, 'rgba(109, 85, 164, 0)');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'القطع المباعة',
+                    data: dataValues,
+                    borderColor: '#6D55A4', // --color-primary
+                    backgroundColor: gradient,
+                    fill: true,
+                    borderWidth: 3,
+                    pointBackgroundColor: '#6D55A4',
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    tension: 0.4 // لجعل الخطوط منحنية وناعمة
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false // إخفاء عنوان "القطع المباعة"
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#e9ecef' // لون أفتح لخطوط الشبكة
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false // إخفاء خطوط الشبكة العمودية
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}
